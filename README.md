@@ -1,0 +1,43 @@
+### 
+
+# Customer Face Recognition
+
+- [Face Recognition with Arcface, RetinaFace](#face-recognition-with-arcface,retinaface)
+
+
+
+# Face Recognition with Arcface, RetinaFace 
+
+![](https://github.com/Songminkee/Customer_face_recognition/tree/master/fig/demo.jpg)
+
+
+
+### Download pretrained model
+
+- [Google Drive](https://drive.google.com/file/d/1-jjGFn6uoDHOl0OdIbOGYumgPjcRinIZ/view?usp=sharing)
+
+
+
+### Inference
+
+- image mode
+
+  ```
+  python Inference.py --img_mode --src_path [your image file] --write --result_name result.jpg
+  ```
+
+- video mode
+
+  ```
+  python Inference.py --src_path [your video file] --write --result_name result.mp4
+  ```
+
+
+
+
+
+## Reference
+
+- https://github.com/foamliu/Face-Alignment
+
+- https://github.com/ronghuaiyang/arcface-pytorch
