@@ -1,14 +1,12 @@
-### 
-
 # Customer Face Recognition
 
-- [Face Recognition with Arcface, RetinaFace](#face-recognition-with-arcface,retinaface)
+- [Face Recognition with Arcface, RetinaFace](#face-recognition-with-arcface,-retinaface)
 
-
+<br>
 
 # Face Recognition with Arcface, RetinaFace 
 
-![](https://github.com/Songminkee/Customer_face_recognition/tree/master/fig/demo.jpg)
+![](https://github.com/Songminkee/Customer_face_recognition/blob/master/fig/demo.jpg)
 
 
 
@@ -16,7 +14,7 @@
 
 - [Google Drive](https://drive.google.com/file/d/1-jjGFn6uoDHOl0OdIbOGYumgPjcRinIZ/view?usp=sharing)
 
-
+<br>
 
 ### Inference
 
@@ -34,7 +32,7 @@
 
 
 
-
+<br>
 
 ## Reference
 
