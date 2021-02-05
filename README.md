@@ -1,6 +1,6 @@
 # Customer Face Recognition
 
-- [Face Recognition with Arcface, RetinaFace](#face-recognition-with-arcface,-retinaface)
+- [Face Recognition with Arcface, RetinaFace](#face-recognition-with-arcface-retinaface)
 
 <br>
 
