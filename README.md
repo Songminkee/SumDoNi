@@ -3,7 +3,7 @@
 - #### [Face Recognition with Arcface, RetinaFace](#face-recognition-with-arcface-retinaface)
   - [Inference example](#inference)
 
-- #### [Download pretrained model](#download-pretrained-model)
+- #### [Download pretrained weights](#download-pretrained-model)
 
 <br>
 
