@@ -1,6 +1,9 @@
 # Customer Face Recognition
 
-- [Face Recognition with Arcface, RetinaFace](#face-recognition-with-arcface-retinaface)
+- #### [Face Recognition with Arcface, RetinaFace](#face-recognition-with-arcface-retinaface)
+  - [Inference example](#inference)
+
+- #### [Download pretrained model](#download-pretrained-model)
 
 <br>
 
@@ -9,10 +12,6 @@
 ![](https://github.com/Songminkee/Customer_face_recognition/blob/master/fig/demo.jpg)
 
 
-
-### Download pretrained model
-
-- [Google Drive](https://drive.google.com/file/d/1-jjGFn6uoDHOl0OdIbOGYumgPjcRinIZ/view?usp=sharing)
 
 <br>
 
@@ -30,7 +29,11 @@
   python Inference.py --src_path [your video file] --write --result_name result.mp4
   ```
 
+<br>
 
+# Download pretrained model
+
+- Arcface & RetinaFace [[Google Drive]](https://drive.google.com/file/d/1-jjGFn6uoDHOl0OdIbOGYumgPjcRinIZ/view?usp=sharing)
 
 <br>
 
