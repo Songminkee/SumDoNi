@@ -1,7 +1,18 @@
 import torch
 import numpy as np
-
+import cv2
+import glob
 from utils.align_faces import warp_and_crop_face, get_reference_facial_points
+
+
+class FaceFeatures(object):
+    def __init__(self,root_path='./features'):
+        paths = glob.glob(root_path+'/*.npy')
+        self.feats = np.zeros((len(paths),1024),dtype=np.float32)
+        self.names = []
+        for i,path in enumerate(paths):
+            self.feats[i] = load_feat(path)
+            self.names.append(path.split('/')[-1].replace('.npy',''))
 
 def load_model(model, model_path):
     model_dict = model.state_dict()
@@ -10,13 +21,11 @@ def load_model(model, model_path):
     model_dict.update(pretrained_dict)
     model.load_state_dict(model_dict)
 
-
 def get_feature_dict(test_list, features):
     fe_dict = {}
     for i, each in enumerate(test_list):
         fe_dict[each] = features[i]
     return fe_dict
-
 
 def cosin_metric(x1, x2,multi=False):
     if multi:
@@ -25,7 +34,6 @@ def cosin_metric(x1, x2,multi=False):
         n2 = np.linalg.norm(x2,axis=0)
         return np.dot(x1,x2).squeeze() / (n1*n2)
     return np.dot(x1, x2) / (np.linalg.norm(x1) * np.linalg.norm(x2))
-
 
 def cal_accuracy(y_score, y_true):
     y_score = np.asarray(y_score)
@@ -42,13 +50,11 @@ def cal_accuracy(y_score, y_true):
 
     return (best_acc, best_th)
 
-
 def distinct_face(arc_model,target_feat,face_img):
     src_feat = get_face_feature(arc_model,face_img)
     sims = cosin_metric(target_feat,src_feat.squeeze())
     idx = np.argmax(sims)
     return sims[idx],idx
-
 
 def get_face_feature(arc_model,image):
     image = np.dstack((image, np.fliplr(image)))
@@ -97,3 +103,57 @@ def process(raw, detector, output_size):
         warp_and_crops.append(warp_and_crop_face(raw, points, reference_pts=reference_5pts, crop_size=output_size))
         
     return det, np.array(warp_and_crops)
+
+def face_recognition(img_raw,arc_model,detector,Faces,detect_threshold=0.8,sim_threshold=0.125,draw_img=False,indivisual_threshold=False):
+    names, boxes, det_scores, sim_scores = [],[],[],[]
+    img = img_raw.copy()
+    det,patch = process(img,detector, output_size=(112, 112))
+    for i,b in enumerate(det):
+        detect_score = b[4]
+        b = list(map(int, b))
+
+        p = cv2.resize(patch[i],(128,128))
+        sim,idx = distinct_face(arc_model,Faces.feats,cv2.cvtColor(p,cv2.COLOR_BGR2GRAY))
+        draw_name = Faces.names[idx]
+        if indivisual_threshold:
+            if detect_score < detect_threshold:
+                continue
+            if sim < sim_threshold:
+                draw_name = '???'
+                sim = -1.
+        else:
+            if detect_score* sim < detect_threshold * sim_threshold:
+                draw_name = '???'
+                sim = -1.
+
+        names.append(draw_name)
+        boxes.append(b[:4])
+        det_scores.append(detect_score)
+        sim_scores.append(sim)
+
+        if draw_img:
+            b = list(map(int, b))
+            cx = b[0]
+            cy = b[1] + 12
+            cy2 = b[1] 
+            cy3 = b[1] - 12
+            cy4 = b[1] - 24
+            cv2.rectangle(img_raw, (b[0], b[1]), (b[2], b[3]), (0, 0, 255), 2)
+
+            text = "detect={:.4f}".format(detect_score)
+            text2 = "name={}".format(draw_name)
+            cv2.putText(img_raw, text, (cx, cy),
+                            cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255))
+            cv2.putText(img_raw, text2, (cx, cy2),
+                            cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255))
+            text = "sim={:.4f} ".format(sim)
+            text2 = "number={} ".format(i)
+            
+            cv2.putText(img_raw, text, (cx, cy3),
+                            cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255))
+            cv2.putText(img_raw, text2, (cx, cy4),
+                            cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255))
+    
+    if draw_img:
+        return names, boxes, det_scores, sim_scores, img_raw
+    return names, boxes, det_scores, sim_scores

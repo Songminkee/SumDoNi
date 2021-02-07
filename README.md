@@ -20,19 +20,19 @@
 - image mode
 
   ```
-  python Inference.py --img_mode --src_path [your image file] --write --result_name result.jpg
+  python demo_face_recognition.py --img_mode --src_path [your image file] --write --result_name result.jpg
   ```
 
 - video mode
 
   ```
-  python Inference.py --src_path [your video file] --write --result_name result.mp4
+  python demo_face_recognition.py --src_path [your video file] --write --result_name result.mp4
   ```
 
 - tracking mode
 
   ```
-  python track.py --source inputs/1.mp4
+  python demo_person_tracker.py --source inputs/1.mp4
   ```
 
 <br>
