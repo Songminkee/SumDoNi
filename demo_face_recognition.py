@@ -15,18 +15,28 @@ from arcface.models import resnet_face18
 from retinaface.detector import RetinafaceDetector
 from utils.face_util import *
 
+
 def img_mode(config,args,arc_model,detector,Faces):
     img_raw = cv2.imread(args.src_path)
     if args.is_resize:
         img_raw = cv2.resize(img_raw, (args.resize, args.resize),interpolation=cv2.INTER_LINEAR)
     img = img_raw.copy()
     det,patch = process(img,detector, output_size=(112, 112))
-    ps = []
-    
+    ps = None
     for i,p in enumerate(patch):
         p = cv2.resize(p,(128,128))
-        feat = get_face_feature(arc_model,p)
-        ps.append(p)
+        p = cv2.cvtColor(p,cv2.COLOR_BGR2GRAY)
+        p = np.dstack((p, np.fliplr(p)))
+        p = p.transpose((2, 0, 1))
+        p = p[:, np.newaxis, :, :]
+        p = p.astype(np.float32, copy=False)
+        p -= 127.5
+        p /= 127.5
+        if ps is None:
+            ps = p
+        else:
+            ps = np.concatenate((ps, p), axis=0)
+        
     
     for i,b in enumerate(det):
         detect_score = b[4]
@@ -38,9 +48,9 @@ def img_mode(config,args,arc_model,detector,Faces):
         cy4 = b[1] - 24
         
         p = cv2.resize(patch[i],(128,128))
-        sim,idx = distinct_face(arc_model,Faces.feats,cv2.cvtColor(p,cv2.COLOR_BGR2GRAY))
-        
+        sim,idx = distinct_single_face(arc_model,Faces.feats,cv2.cvtColor(p,cv2.COLOR_BGR2GRAY))
         draw_name = Faces.names[idx]
+        
         if args.indivisual_threshold:
             if detect_score < opt.detect_threshold:
                 continue
@@ -120,7 +130,7 @@ def video_mode(config,args,arc_model,detector,Faces):
                 cy4 = b[1] - 24
                 
                 p = cv2.resize(patch[i],(128,128))
-                sim,idx = distinct_face(arc_model,Faces.feats,cv2.cvtColor(p,cv2.COLOR_BGR2GRAY))
+                sim,idx = distinct_single_face(arc_model,Faces.feats,cv2.cvtColor(p,cv2.COLOR_BGR2GRAY))
                 
                 draw_name = Faces.names[idx]
                 if args.indivisual_threshold:
@@ -212,7 +222,7 @@ if __name__ == '__main__':
 
     opt = Config()
     arc_model = resnet_face18(opt.use_se)
-    load_model(arc_model, opt.test_model_path)
+    load_model(arc_model, opt.arc_model_path)
     
     cudnn.benchmark = True
     device = torch.device("cuda")
