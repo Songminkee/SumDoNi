@@ -22,21 +22,6 @@ def img_mode(config,args,arc_model,detector,Faces):
         img_raw = cv2.resize(img_raw, (args.resize, args.resize),interpolation=cv2.INTER_LINEAR)
     img = img_raw.copy()
     det,patch = process(img,detector, output_size=(112, 112))
-    ps = None
-    for i,p in enumerate(patch):
-        p = cv2.resize(p,(128,128))
-        p = cv2.cvtColor(p,cv2.COLOR_BGR2GRAY)
-        p = np.dstack((p, np.fliplr(p)))
-        p = p.transpose((2, 0, 1))
-        p = p[:, np.newaxis, :, :]
-        p = p.astype(np.float32, copy=False)
-        p -= 127.5
-        p /= 127.5
-        if ps is None:
-            ps = p
-        else:
-            ps = np.concatenate((ps, p), axis=0)
-        
     
     for i,b in enumerate(det):
         detect_score = b[4]
@@ -85,7 +70,7 @@ def img_mode(config,args,arc_model,detector,Faces):
         cv2.imwrite(f'{args.result_name}.jpg',img_raw)
         
     k = cv2.waitKey(0)
-    if k==115:
+    if k==ord('s'):
         is_ok = False
         while not is_ok:
             number = int(input("input feature number : "))
@@ -95,9 +80,9 @@ def img_mode(config,args,arc_model,detector,Faces):
             answer = input("is it right? (Y/N) : ")
             if answer=='Y':
                 name = input("input feature name : ")
-                feat = get_face_feature(arc_model,cv2.cvtColor(p,cv2.COLOR_BGR2GRAY))
+                feat = get_face_feature(arc_model,cv2.cvtColor(p,cv2.COLOR_BGR2GRAY),preprocess=True)
                 save_feat(opt,name,feat,Faces)
-                answer = input("Will you keep saving it? (Y/N)")
+                answer = input("Will you keep saving it? (Y/N) ")
                 if answer=='N':
                     is_ok=True
     cv2.destroyAllWindows()
@@ -166,7 +151,7 @@ def video_mode(config,args,arc_model,detector,Faces):
         if args.write:
             out.write(cv2.resize(img_raw, (args.write_size, args.write_size),interpolation=cv2.INTER_LINEAR))
         k=cv2.waitKey(1)
-        if k==115:
+        if k==ord('s'):
             is_ok = False
             while not is_ok:
                 number = int(input("input feature number : "))

@@ -106,7 +106,7 @@ def face_track(config,args,arc_model,face_detector,person_detector,deep_sort,Fac
             cv2.imshow('result',img_draw)
             k=cv2.waitKey(1)
             if k==ord('s'):
-                make_feature(config,Faces,arc_model,img_raw)
+                make_feature(config,Faces,arc_model,face_detector,img_raw)
             elif k>0:
                 break
 

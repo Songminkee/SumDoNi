@@ -17,7 +17,8 @@ class FaceFeatures(object):
         self.feats = np.zeros((len(paths),1024),dtype=np.float32)
         self.names = []
         for i,path in enumerate(paths):
-            self.feats[i] = load_feat(path)
+            loaded =load_feat(path)
+            self.feats[i] = loaded
             self.names.append(path.split('/')[-2])
 
 class Info(object):
@@ -175,27 +176,6 @@ class TrackFace(object):
                 self.track_id[identities[i]] = Info(bbox_xyxy[i],  sim_scores[i],face_det_scores[i],features[i],patches[i],now_time)
                 self.track_id[identities[i]].cnt+=1
 
-class Coord(object):
-    def __init__(self):
-        self.x_start, self.y_start, self.x_end, self.y_end, self.cropping = 0,0,0,0,False
-
-    def init(self):
-        self.x_start, self.y_start, self.x_end, self.y_end, self.cropping = 0,0,0,0,False
-
-    def mouse_crop(self, event, x, y, flags, param):
-            if event == cv2.EVENT_LBUTTONDOWN:
-                self.x_start, self.y_start, self.x_end, self.y_end = x, y, x, y
-                self.cropping = True
-            # Mouse is Moving
-            elif event == cv2.EVENT_MOUSEMOVE:
-                if self.cropping == True:
-                    self.x_end, self.y_end = x, y
-            # if the left mouse button was released
-            elif event == cv2.EVENT_LBUTTONUP:
-                # record the ending (x, y) coordinates
-                self.x_end, self.y_end = x, y
-                self.cropping = False # cropping is finished
-
 def load_model(model, model_path):
     model_dict = model.state_dict()
     pretrained_dict = torch.load(model_path)
@@ -280,7 +260,7 @@ def get_face_feature(arc_model,image,preprocess=True):
     return  np.hstack((fe_1, fe_2))
 
 
-def save_feat(opt,name,feature,Faces):
+def save_feat(opt,name,feature,Faces,patch=None):
     if not os.path.exists(os.path.join(opt.features_path,name)):
         os.makedirs(os.path.join(opt.features_path,name))
     exists = glob.glob(os.path.join(opt.features_path,name)+'/*.npy')
@@ -289,6 +269,8 @@ def save_feat(opt,name,feature,Faces):
     Faces.feats = np.concatenate([Faces.feats,feature],0)
     Faces.names.append(name)
     np.save(dst_path,feature)
+    if patch is not None:
+        cv2.imwrite(f'{opt.features_path}/{name}/{name}_{len(exists)+1}.jpg',patch)
 
 def load_feat(path):
     return np.load(path)
@@ -455,28 +437,41 @@ def face_recognition(img_raw,arc_model,detector,Faces,detect_threshold=0.8,sim_t
         return names, boxes, det_scores, sim_scores, img_raw
     return names, boxes, det_scores, sim_scores
 
-def make_feature(opt,Faces,arc_model,img_raw):
-    coord = Coord()
-    cv2.namedWindow('face')
-    cv2.setMouseCallback('face',coord.mouse_crop)
-    while True:
-        i = img_raw.copy()
-        cv2.rectangle(i, (coord.x_start, coord.y_start), (coord.x_end, coord.y_end), (255, 0, 0), 2)
-        cv2.imshow("face", i)
+def make_feature(opt,Faces,arc_model,face_detector,img_raw):
+    is_ok = False
+    det,patch = process(img_raw,face_detector, output_size=(112, 112))
+    
+    
+    if not len(det): return
+    candidate_img = img_raw.copy()
+    for i,b in enumerate(det):
+        b = list(map(int, b))
+        cv2.rectangle(candidate_img, (b[0], b[1]), (b[2], b[3]), (0, 255, 0), 2)
+        text = "number={} ".format(i)
+        cv2.putText(candidate_img, text, (b[0], b[1]+12),
+                        cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 255,0))
+    
+    while not is_ok:
+        cv2.imshow("candidate",candidate_img)
+        cv2.waitKey(1)
+        number = int(input("input feature number (if you want break insert -1) : "))
+        if number==-1:
+            break
+        patch_img = cv2.resize(patch[number],(128,128))
+        draw_patch = patch_img.copy()
+        cv2.putText(draw_patch, "is it right? (Y/N) ", (0, 12),
+                        cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 0, 0))
+        cv2.imshow("your choice",draw_patch)
         k = cv2.waitKey(1)
-        
-        if k == ord('r'):
-            coord.init()
-        elif k == ord('y'):
-            cv2.imshow("selected", img_raw[coord.y_start:coord.y_end,coord.x_start:coord.x_end])
-            k = cv2.waitKey(0)
-            if k==ord('n'):
-                coord.init()
-                break
-            elif k ==ord('y'):
-                crop_img = cv2.resize(img_raw[coord.y_start:coord.y_end,coord.x_start:coord.x_end],(128,128))
-                crop_img = cv2.cvtColor(crop_img,cv2.COLOR_RGB2GRAY)
-                feat = get_face_feature(arc_model,crop_img)
-                name = input("input feature name : ")
-                save_feat(opt,name,feat,Faces)
+        answer = input("is it right? (Y/N) : ")
+        if answer=='Y' or answer=='y':
+            name = input("input feature name : ")
+            feat = get_face_feature(arc_model,cv2.cvtColor(patch_img,cv2.COLOR_BGR2GRAY),preprocess=True)
+            save_feat(opt,name,feat,Faces,patch_img)
+            
+            answer = input("Will you keep saving it? (Y/N) ")
+            if answer=='N':
+                is_ok=True
+    cv2.destroyWindow("candidate")
+    cv2.destroyWindow('your choice')
 
