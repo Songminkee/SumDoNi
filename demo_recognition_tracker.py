@@ -98,18 +98,22 @@ def face_track(config,args,arc_model,face_detector,person_detector,deep_sort,Fac
         
         if args.is_draw:
             t8 = time.time()
-            tracked.draw_info(img_raw)
+            img_draw = img_raw.copy()
+            tracked.draw_info(img_draw)
             print(f"draw time = {time.time()-t8}")
-            cv2.putText(img_raw, f'now_frame={frame}', (0, 12),
+            cv2.putText(img_draw, f'now_frame={frame}', (0, 12),
                     cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 0, 255))
-            cv2.imshow('result',img_raw)
+            cv2.imshow('result',img_draw)
             k=cv2.waitKey(1)
-            if k>0:
+            if k==ord('s'):
+                make_feature(config,Faces,arc_model,img_raw)
+            elif k>0:
                 break
+
         if args.write:
             out.write(cv2.resize(img_raw, (args.write_size, args.write_size),interpolation=cv2.INTER_LINEAR))
         
-        
+        print('tracked',tracked)
         print(f"time = {time.time()-t1}\n")
 
 if __name__ == '__main__':

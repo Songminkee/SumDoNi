@@ -8,12 +8,17 @@ from utils.align_faces import warp_and_crop_face, get_reference_facial_points
 
 class FaceFeatures(object):
     def __init__(self,root_path='./features'):
-        paths = glob.glob(root_path+'/*.npy')
+        folders = glob.glob(root_path+'/*')
+        paths = []
+        for folder in folders:
+            files = glob.glob(folder+'/*.npy')
+            for file in files:
+                paths.append(file.replace("\\","/"))
         self.feats = np.zeros((len(paths),1024),dtype=np.float32)
         self.names = []
         for i,path in enumerate(paths):
             self.feats[i] = load_feat(path)
-            self.names.append(path.split('/')[-1].replace('.npy',''))
+            self.names.append(path.split('/')[-2])
 
 class Info(object):
     def __init__(self, box, sim, face_det_score,feature,patch,start_time):
@@ -29,12 +34,23 @@ class Info(object):
         self.patchs = patch
         self.face_det_score = face_det_score
     
+    def __repr__(self):
+        information = f"""        name : {self.name}
+        cnt : {self.cnt}
+        sim : {self.sim}
+        sim_score : {self.sim_score}
+        box : {self.box}
+        time : {[self.start_time,self.end_time]}
+        age : {self.age}
+        det_score : {self.face_det_score}\n"""
+        return information
+
     def update(self,Faces,sim_score,face_det_score,feature,patch,now_time,sim_threshold):
         self.features = np.concatenate([self.features,np.expand_dims(feature,0)],0)
         self.patch = np.concatenate([self.patchs,patch],1)
         self.sim += sim_score
         self.cnt+=1
-        self.end_time = now_time
+        self.end_time = str(now_time)
         self.face_det_score = face_det_score
         idx = np.argmax(self.sim / self.cnt)
         self.sim_score = self.sim[idx] / self.cnt        
@@ -46,6 +62,8 @@ class Info(object):
                 self.name = Faces.names[idx]                
             else:
                 self.name = 'Unknown'
+    
+
 
 class TrackFace(object):
     def __init__(self,max_cnt=5,detect_threshold=0.8, sim_threshold=0.15,log_path='./log',day='0'):
@@ -58,6 +76,14 @@ class TrackFace(object):
             os.makedirs(log_path)
         self.log_path = log_path
         self.day = day
+    
+    def __repr__(self):
+        information = ''
+        for k in self.track_id.keys():
+            information += f'\ntracked_id : {k}\n' + self.track_id[k].__repr__()
+        for k in self.old_id.keys():
+            information += f'\nold_id : {k}\n' + self.old_id[k].__repr__()
+        return information
 
     def update_day(self,day):
         self.day = day
@@ -88,13 +114,13 @@ class TrackFace(object):
     def age_update(self):
         for idx in list(self.old_id.keys()):
             self.old_id[idx].age +=1
-            if self.old_id[idx].age >= 100:
+            if self.old_id[idx].age >= 500:
                 self.write_info(self.old_id[idx])         
                 del self.old_id[idx]
 
         for idx in list(self.track_id.keys()):
-            self.track_id[idx].age+=1
-            if self.track_id[idx].age >= 71:
+            self.track_id[idx].age += 1
+            if self.track_id[idx].age >= 10:
                 self.old_id[idx] = self.track_id[idx]
                 del self.track_id[idx]
 
@@ -105,7 +131,7 @@ class TrackFace(object):
             if id_num in self.track_id.keys() and self.track_id[id_num].cnt >= self.max_cnt: 
                 self.track_id[id_num].age = -1
                 self.track_id[id_num].box = bbox[i]
-                self.track_id[id_num].end_time = now_time
+                self.track_id[id_num].end_time = str(now_time)
                 print("checked")
                 continue
             ret_id.append(id_num)
@@ -126,16 +152,18 @@ class TrackFace(object):
                     self.track_id[id_num].update(Faces,sim_scores[i],face_det_scores[i],features[i],patches[i],now_time,self.sim_threshold)
         
         for i in range(len(identities)):
+            print("face_score",face_det_scores[i])
             if ck_list[i] or face_det_scores[i] <= self.detect_threshold: continue
             best = 0
             best_id = -1
             sim = 0
             for idx in self.old_id.keys():
-                sim = cosin_metric(features[i],self.old_id[idx].features,multi=True)
+                sim = cosin_metric(features[i][np.newaxis,:],self.old_id[idx].features,multi=True)
                 sim = np.sum(sim) / self.old_id[idx].cnt
                 if sim> best:
                     best = sim
                     best_id = idx
+            print("sim",sim)
             if sim > self.sim_threshold:
                 self.track_id[identities[i]] = self.old_id[best_id]
                 del self.old_id[best_id]
@@ -146,6 +174,27 @@ class TrackFace(object):
             else:
                 self.track_id[identities[i]] = Info(bbox_xyxy[i],  sim_scores[i],face_det_scores[i],features[i],patches[i],now_time)
                 self.track_id[identities[i]].cnt+=1
+
+class Coord(object):
+    def __init__(self):
+        self.x_start, self.y_start, self.x_end, self.y_end, self.cropping = 0,0,0,0,False
+
+    def init(self):
+        self.x_start, self.y_start, self.x_end, self.y_end, self.cropping = 0,0,0,0,False
+
+    def mouse_crop(self, event, x, y, flags, param):
+            if event == cv2.EVENT_LBUTTONDOWN:
+                self.x_start, self.y_start, self.x_end, self.y_end = x, y, x, y
+                self.cropping = True
+            # Mouse is Moving
+            elif event == cv2.EVENT_MOUSEMOVE:
+                if self.cropping == True:
+                    self.x_end, self.y_end = x, y
+            # if the left mouse button was released
+            elif event == cv2.EVENT_LBUTTONUP:
+                # record the ending (x, y) coordinates
+                self.x_end, self.y_end = x, y
+                self.cropping = False # cropping is finished
 
 def load_model(model, model_path):
     model_dict = model.state_dict()
@@ -162,6 +211,8 @@ def get_feature_dict(test_list, features):
 
 def cosin_metric(x1, x2,multi=False):
     if multi:
+        print("x1",x1.shape)
+        print("x2",x2.shape)
         x2 = x2.transpose(1,0)
         n1 = np.linalg.norm(x1,axis=1,keepdims=True)
         n2 = np.linalg.norm(x2,axis=0,keepdims=True)
@@ -230,7 +281,10 @@ def get_face_feature(arc_model,image,preprocess=True):
 
 
 def save_feat(opt,name,feature,Faces):
-    dst_path = f'{opt.features_path}/{name}.npy'
+    if not os.path.exists(os.path.join(opt.features_path,name)):
+        os.makedirs(os.path.join(opt.features_path,name))
+    exists = glob.glob(os.path.join(opt.features_path,name)+'/*.npy')
+    dst_path = f'{opt.features_path}/{name}/{name}_{len(exists)+1}.npy'
     feature = np.reshape(feature,[1,-1])
     Faces.feats = np.concatenate([Faces.feats,feature],0)
     Faces.names.append(name)
@@ -400,3 +454,29 @@ def face_recognition(img_raw,arc_model,detector,Faces,detect_threshold=0.8,sim_t
     if draw_img:
         return names, boxes, det_scores, sim_scores, img_raw
     return names, boxes, det_scores, sim_scores
+
+def make_feature(opt,Faces,arc_model,img_raw):
+    coord = Coord()
+    cv2.namedWindow('face')
+    cv2.setMouseCallback('face',coord.mouse_crop)
+    while True:
+        i = img_raw.copy()
+        cv2.rectangle(i, (coord.x_start, coord.y_start), (coord.x_end, coord.y_end), (255, 0, 0), 2)
+        cv2.imshow("face", i)
+        k = cv2.waitKey(1)
+        
+        if k == ord('r'):
+            coord.init()
+        elif k == ord('y'):
+            cv2.imshow("selected", img_raw[coord.y_start:coord.y_end,coord.x_start:coord.x_end])
+            k = cv2.waitKey(0)
+            if k==ord('n'):
+                coord.init()
+                break
+            elif k ==ord('y'):
+                crop_img = cv2.resize(img_raw[coord.y_start:coord.y_end,coord.x_start:coord.x_end],(128,128))
+                crop_img = cv2.cvtColor(crop_img,cv2.COLOR_RGB2GRAY)
+                feat = get_face_feature(arc_model,crop_img)
+                name = input("input feature name : ")
+                save_feat(opt,name,feat,Faces)
+
