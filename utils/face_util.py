@@ -7,6 +7,16 @@ from utils.align_faces import warp_and_crop_face, get_reference_facial_points
 
 
 class FaceFeatures(object):
+    """ This is a class that has saved facial features.
+
+    Params:
+        feats ([numpy array]) : It has features for N images. N x 1024.
+        name ([string list]) : It is a name to distinguish N features.
+
+    __init__:
+        Args:
+            root_path ([string]) : This is the root path of the features you have saved.
+    """
     def __init__(self,root_path='./features'):
         folders = glob.glob(root_path+'/*')
         paths = []
@@ -22,6 +32,43 @@ class FaceFeatures(object):
             self.names.append(path.split('/')[-2])
 
 class Info(object):
+    """ It is a class that has information about similarity score, name, feature, box, etc. for one object.
+    
+    Params:
+        box ([int list]) : Box information for person object detection. xyxy format.
+        sim ([numpy array]) : This object's similarity score for all features of the FaceFeatures class. Shape is N.
+        sim_score ([float]) : The highest value of sim/cnt.
+        cnt ([int]) : Counted number of times to perform face detection to calculate the final similarity.
+        start_time ([string]) : The first detection time.
+        end_time ([string]) : The last detection time.
+        age ([int]) : Undetected frames from the last detected frame. 
+                        When this number exceeds a certain range, the memory of the class is released.
+        features ([numpy array]) : The face feature of this object. Max shape is max_cnt x 1024.
+        face_det_score ([float]) : Final confidence score for face detection.
+
+    Methods:
+        __init__:
+            Args:
+                box ([int list]) : Box information for person object detection. xyxy format.
+                sim ([numpy array]) : This object's similarity score for all features of the FaceFeatures class. Shape is N.
+                face_det_score ([float]) : Final confidence score for face detection.
+                feature ([numpy array]) : The face feature of this object.
+                patch ([numpy array]) : The patch image of detected face.
+                sim_score ([float]) : The highest value of sim/cnt.
+                start_time ([string]) : The first detection time.
+
+        update:  This function is called when this object is detected at the current time, 
+                    and is named by similarity if it is greater than or equal to max_cnt specified by cnt.
+            Args:
+                Faces : FaceFeatures class object.
+                sim_score ([numpy array]) : This object's similarity score for all features of the FaceFeatures class. Shape is N.
+                face_det_score ([float]) : Final confidence score for face detection. 
+                feature ([numpy array]) : The face feature of this object.
+                patch ([numpy array]) : The patch image of detected face.
+                now_time ([float]) : The current time is entered to update the end time.
+                sim_threshold ([float]): Threshold value for maximum similarity score.
+
+    """
     def __init__(self, box, sim, face_det_score,feature,patch,start_time):
         self.name = '???'
         self.cnt = 0
@@ -55,8 +102,6 @@ class Info(object):
         self.face_det_score = face_det_score
         idx = np.argmax(self.sim / self.cnt)
         self.sim_score = self.sim[idx] / self.cnt        
-        print("sim",sim_threshold)
-        print(self.features.shape)
         if self.cnt == 5:
             if self.sim[idx] /5 >= sim_threshold:
                 
@@ -67,6 +112,58 @@ class Info(object):
 
 
 class TrackFace(object):
+    """ It is a class that has information about similarity score, name, feature, box, etc. for one object.
+    
+    Params:
+        track_id ([Dictionary (key = integer, value = Info class) ]) : It is a dictionary that has an ID currently being tracked as a key and an Info class with a value.
+        max_cnt ([int]) : Total number of times to perform face detection to calculate the final similarity.
+        detect_threshold ([float]) : Threshold value of face detection.
+        sim_threshold ([float]) : Threshold value for maximum similarity score.
+        old_id ([Dictionary (key = integer, value = Info class) ]) : The info class whose age has risen to a certain level is stored in this dictionary, 
+                                                                                            where the memory is released when age exceeds a certain number.
+        age ([int]) : Undetected frames from the last detected frame. 
+                        When this number exceeds a certain range, the memory of the class is released.
+        log_path ([string]): The root path of the log to be left when memory is released.
+        day ([numpy array]) : This variable is still temporary. This is a variable set to record the log by date.
+       
+    Methods:
+        draw_info: This function draws information about the ID currently being tracked on the image.
+            Args:
+                img_raw ([numpy array]) : Original image.
+        
+        write_info: It is called when the memory of the info class is released, and the start time and end time are logged.
+            Args:
+                Info ([Info class]) : Info class to release memory.
+
+        age_update: It is called every frame and increases the age by 1 in all Info classes.
+            Args:
+                None, just call.
+
+        check_identities: Called before performing face recognition. 
+                                IDs that have already been recognized by max_cnt or higher and have been named are excluded.
+                                These ids only update the end time, person detection box, and age.
+            Args:
+                bbox ([numpy array]) : Bounding box of Person detection. xyxy format.
+                identities ([numpy array]) : Tracking ID received from Deep Sort.
+                now_time ([numpy array]) : Current frame or time.
+
+        update:  This function is called when this object is detected at the current time.
+                    If the ID is already tracking, the update method of the Info class is called.
+                    In the case of a new id, it may be the case that the old id is missed and a new id is given,
+                    so if the feature is similar to the old id and exceeds the threshold, 
+                    the old id is moved back to the track id.
+                    If it is less than the threshold, it is determined as a new object and an Info class is created.
+            Args:
+                Faces : FaceFeatures class object.
+                identities ([numpy array]) : Tracking ID received from Deep Sort.
+                bbox_xyxy ([numpy array]) : Bounding box of Person detection. xyxy format.
+                face_boxes ([numpy array]) : Bounding box of face detection. xyxy format.
+                face_det_score ([float]) : Final confidence score for face detection. 
+                sim_score ([numpy array]) : This object's similarity score for all features of the FaceFeatures class. Shape is N.
+                feature ([numpy array]) : The face feature of this object.
+                patch ([numpy array]) : The patch image of detected face.
+                now_time ([float]) : The current time is entered to update the end time.
+    """
     def __init__(self,max_cnt=5,detect_threshold=0.8, sim_threshold=0.15,log_path='./log',day='0'):
         self.track_id = dict()
         self.max_cnt = max_cnt
@@ -177,50 +274,61 @@ class TrackFace(object):
                 self.track_id[identities[i]].cnt+=1
 
 def load_model(model, model_path):
+    """This is a function for the arc face model. Load and apply state dict from the saved file.
+
+    Args:
+        model ([ResNetFace]): Arc Face model class object.
+        model_path ([string]): Path of ArcFace's pretrained weight file.
+    """
     model_dict = model.state_dict()
     pretrained_dict = torch.load(model_path)
     pretrained_dict = {k.replace('module.',''): v for k, v in pretrained_dict.items() if k.replace('module.','') in model_dict}
     model_dict.update(pretrained_dict)
     model.load_state_dict(model_dict)
 
-def get_feature_dict(test_list, features):
-    fe_dict = {}
-    for i, each in enumerate(test_list):
-        fe_dict[each] = features[i]
-    return fe_dict
-
 def cosin_metric(x1, x2,multi=False):
+    """Measure the similarity between two features using the cosin function.
+
+    Args:
+        x1 ([numpy array]): Shape is N x 1024 if multi. else 1024.
+        x2 ([numpy array]): Shape is M x 1024 if multi. else 1024.
+        multi (bool, optional): Flag for shape.
+
+    Returns:
+        [numpy]: Similarity for N features and M features if multi. else single.
+    """
     if multi:
-        print("x1",x1.shape)
-        print("x2",x2.shape)
         x2 = x2.transpose(1,0)
         n1 = np.linalg.norm(x1,axis=1,keepdims=True)
         n2 = np.linalg.norm(x2,axis=0,keepdims=True)
         return np.dot(x1,x2).squeeze() / (n1*n2)
     return np.dot(x1, x2) / (np.linalg.norm(x1) * np.linalg.norm(x2))
 
-def cal_accuracy(y_score, y_true):
-    y_score = np.asarray(y_score)
-    y_true = np.asarray(y_true)
-    best_acc = 0
-    best_th = 0
-    for i in range(len(y_score)):
-        th = y_score[i]
-        y_test = (y_score >= th)
-        acc = np.mean((y_test == y_true).astype(int))
-        if acc > best_acc:
-            best_acc = acc
-            best_th = th
-
-    return (best_acc, best_th)
-
 def distinct_single_face(arc_model,target_feat,face_img):
+    """It extracts a feature from one image and returns which feature is most similar to one of the features you currently have.
+
+    Args:
+        arc_model ([ResNetFace class object]): Arc Face model class object.
+        target_feat ([numpy array]): Features that you currently have.
+        face_img ([numpy array]): Face image from which to extract features.
+    Returns:
+        [numpy array], [numpy array] : Highest similarity and corresponding id
+    """
     src_feat = get_face_feature(arc_model,face_img)
     sims = cosin_metric(src_feat,target_feat,multi=True)
     idx = np.argmax(sims,axis=1)
     return sims[0][idx[0]],idx[0]
 
 def distinct_multi_face(arc_model,target_feat,patch):
+    """It extracts features from multiple patch images and returns the similarity with the current feature, the corresponding id, and the extracted feature.
+
+    Args:
+        arc_model ([ResNetFace class object]): Arc Face model class object.
+        target_feat ([numpy array]): Features that you currently have.
+        face_img ([numpy array]): Face image patches from which to extract features.
+    Returns:
+        [numpy array, numpy array, numpy array] : Highest similarity, corresponding id and extracted features
+    """
     ps = None
     for i,p in enumerate(patch):
         p = cv2.resize(p,(128,128))
@@ -242,6 +350,16 @@ def distinct_multi_face(arc_model,target_feat,patch):
     return sims,idxs,feats
 
 def get_face_feature(arc_model,image,preprocess=True):
+    """Returns the arcface result from the input image.
+
+    Args:
+        arc_model ([ResNetFace class object]): Arc Face model class object.
+        image ([numpy array]): Face image from which to extract features.
+        preprocess (bool, optional): If you have already preprocessed the image, just enter False. Defaults to True.
+
+    Returns:
+        [numpy array] : Feature for face image.
+    """
     if preprocess:
         image = np.dstack((image, np.fliplr(image)))
         image = image.transpose((2, 0, 1))
@@ -261,6 +379,16 @@ def get_face_feature(arc_model,image,preprocess=True):
 
 
 def save_feat(opt,name,feature,Faces,patch=None):
+    """Save the face feature in npy format.
+
+    Args:
+        opt ([Config class]): Config class.
+        name ([string]): The name of the face feature.
+        feature ([numpy array]): Face feature.
+        Faces ([FaceFeatures class]): FaceFeatures class object. Takes as input to update the current state.
+        patch ([numpy array], optional): When input, the image patch from which the feature is extracted is also saved.
+                                                         The name is the same as npy. Defaults to None.
+    """
     if not os.path.exists(os.path.join(opt.features_path,name)):
         os.makedirs(os.path.join(opt.features_path,name))
     exists = glob.glob(os.path.join(opt.features_path,name)+'/*.npy')
@@ -276,6 +404,15 @@ def load_feat(path):
     return np.load(path)
 
 def make_patch_img(img_raw,bbox_xyxy):
+    """Create an image set of areas detected as humans by person detection in the original image.
+
+    Args:
+        img_raw ([numpy array]) : Original image. h x w  x c.
+        bbox_xyxy ([numpy array]) : Bounding box of Person detection. xyxy format.
+                
+    Returns:
+       ([numpy array]): A set of patch images in batch format. b x c x h x w. 
+    """
     img_raw = np.float32(img_raw)
     img_batch = np.zeros((len(bbox_xyxy),img_raw.shape[0],img_raw.shape[1],img_raw.shape[2]),dtype=np.float32)
     for i,box in enumerate(bbox_xyxy):
@@ -287,6 +424,18 @@ def make_patch_img(img_raw,bbox_xyxy):
     return img_batch
 
 def multi_batch_process(raw, detector, output_size, bbox_xyxy):
+    """ A patch is created from the input image and the person detection box, 
+        and face detection and face alignment are performed for each patch.
+
+    Args:
+        raw ([numpy array]) : Original image.
+        detector ([RetinafaceDetector class]): Face Detector.
+        output_size ([(int,int)]): Output size of face patches.
+        bbox_xyxy ([numpy array]): Person detection boxes to make input patches
+
+    Returns:
+        [numpy array, numpy array]: Box information and result image of face detection.
+    """
     img = make_patch_img(raw.copy(),bbox_xyxy)
 
     det, facial5points = detector.detect_multi_batch_faces(img)
@@ -312,6 +461,16 @@ def multi_batch_process(raw, detector, output_size, bbox_xyxy):
     return det, np.array(warp_and_crops)
 
 def process(raw, detector, output_size):
+    """Perform face detection (Refinaface) on a single image and return results for it.
+
+    Args:
+        raw ([numpy array]) : Original image.
+        detector ([RetinafaceDetector class]): Face Detector.
+        output_size ([(int,int)]): Output size of face patches.
+
+    Returns:
+        [numpy array, numpy array]: Box information and result image of face detection.
+    """
     img = raw.copy()
     det, facial5points = detector.detect_faces(img)
     if not len(det):
@@ -332,6 +491,27 @@ def process(raw, detector, output_size):
     return det, np.array(warp_and_crops)
 
 def face_recognition_multi(img_raw,arc_model,face_detector,Faces,draw_img=False,indivisual_threshold=False, bbox_xyxy=None):
+    """The difference with the face_recognition function is that it creates multiple patch images based on
+        person dection information before face detection is performed,
+        and face detection and recognition are calculated in batch form at once. 
+        To do this, face detection acquires only one box with the highest confidence in each image.
+
+    Args:
+        img_raw ([numpy array]) : Original image.
+        arc_model ([ResNetFace class object]): Arc Face model class object.
+        face_detector ([RetinafaceDetector class]): Face Detector.
+        Faces ([FaceFeatures class]): FaceFeatures class object. Takes as input to update the current state.
+        draw_img (bool, optional): In the case of ture, the result is drawn with the image. Defaults to False.
+        indivisual_threshold (bool, optional): Currently not used. It may be deleted in the future or the function may be changed. Defaults to False.
+        bbox_xyxy ([numpy array], optional): Bounding box of Person detection. xyxy format. Defaults to None.
+
+    Returns:
+        [numpy array]: Box information of face detection,
+                                Confidence score of face detection,
+                                Similarity for all features you currently have,
+                                Feature array about patch(face image).
+                                Face patch images from which features were extracted.
+    """
     boxes, det_scores, sim_scores, features,patches = [],[],[],[],[]
     img = img_raw.copy()
     if bbox_xyxy is None:
@@ -384,6 +564,23 @@ def face_recognition_multi(img_raw,arc_model,face_detector,Faces,draw_img=False,
 
 
 def face_recognition(img_raw,arc_model,detector,Faces,detect_threshold=0.8,sim_threshold=0.125,draw_img=False,indivisual_threshold=False):
+    """Face recognition is performed after face detection on the image.
+        And it is compared with the index with the highest number compared to the current features and given a name. 
+        Of course, above the threshold, the name is set to ???.
+
+    Args:
+        img_raw ([numpy array]) : Original image.
+        arc_model ([ResNetFace class object]): Arc Face model class object.
+        detector ([RetinafaceDetector class]): Face Detector.
+        Faces ([FaceFeatures class]): FaceFeatures class object. Takes as input to update the current state.
+        detect_threshold (float, optional): Threshold value of face detection. Defaults to 0.8.
+        sim_threshold (float, optional): Threshold value for maximum similarity score. Defaults to 0.125.
+        draw_img (bool, optional): In the case of ture, the result is drawn with the image.. Defaults to False.
+        indivisual_threshold (bool, optional): This is the policy for the threshold.. Defaults to False.
+
+    Returns:
+        [string, numpy array, np.float32, np.float32]: name, face detection box information, face detection confidence score, maximum similarity
+    """
     names, boxes, det_scores, sim_scores = [],[],[],[]
     img = img_raw.copy()
     det,patch = process(img,detector, output_size=(112, 112))
@@ -438,9 +635,17 @@ def face_recognition(img_raw,arc_model,detector,Faces,detect_threshold=0.8,sim_t
     return names, boxes, det_scores, sim_scores
 
 def make_feature(opt,Faces,arc_model,face_detector,img_raw):
+    """This function is called when you want to extract and save a feature from the original image.
+
+    Args:
+        opt ([Config class]): Config class.
+        Faces ([FaceFeatures class]): FaceFeatures class object. Takes as input to update the current state.
+        arc_model ([ResNetFace class object]): Arc Face model class object.
+        face_detector ([RetinafaceDetector class]): Face Detector.
+        img_raw ([numpy array]) : Original image.
+    """
     is_ok = False
     det,patch = process(img_raw,face_detector, output_size=(112, 112))
-    
     
     if not len(det): return
     candidate_img = img_raw.copy()
