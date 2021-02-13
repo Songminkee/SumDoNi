@@ -76,7 +76,7 @@ def face_track(config,args,arc_model,face_detector,person_detector,deep_sort,Fac
             t4 = time.time()
             outputs = deep_sort.update(xywhs, confss, img_raw)
             print(f"deepsort time = {time.time()-t4}")
-
+            print(outputs)
             if len(outputs):
                 t5=time.time()
                 identities,bbox_xyxy  = tracked.check_identities(outputs[:,:4],outputs[:,-1],frame)

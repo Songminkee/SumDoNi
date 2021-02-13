@@ -29,11 +29,11 @@ class Config(object):
     }    
     confidence_threshold = 0.6
     nms_threshold = 0.4
-    detect_threshold = 0.8
+    detect_threshold = 0.6
 
     # yolov5 (person detection) cfg
     yolo_model_path = 'weights/yolov5/yolov5s.pt'
-    yolo_confidence_threshold = 0.6
+    yolo_confidence_threshold = 0.4
     yolo_nms_threshold = 0.5
     
     # deepsort cfg

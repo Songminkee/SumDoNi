@@ -417,7 +417,10 @@ def make_patch_img(img_raw,bbox_xyxy):
     img_batch = np.zeros((len(bbox_xyxy),img_raw.shape[0],img_raw.shape[1],img_raw.shape[2]),dtype=np.float32)
     for i,box in enumerate(bbox_xyxy):
         batch = np.zeros_like(img_raw,dtype = np.float32)
-        batch[box[0]:box[2],box[1]:box[3]] = img_raw[box[0]:box[2],box[1]:box[3]]
+        batch[box[1]:box[3],box[0]:box[2]] = img_raw[box[1]:box[3],box[0]:box[2]]
+        cv2.imshow("batch",np.uint8(batch))
+        cv2.waitKey(1)
+        print("plot")
         batch -= (104,117,123)
         img_batch[i] = batch
     img_batch = img_batch.transpose(0,3,1,2)
@@ -439,6 +442,9 @@ def multi_batch_process(raw, detector, output_size, bbox_xyxy):
     img = make_patch_img(raw.copy(),bbox_xyxy)
 
     det, facial5points = detector.detect_multi_batch_faces(img)
+    print("img",img.shape)
+    print("det",det)
+    print("facial",facial5points)
     if not len(det):
         print("no face!")
     warp_and_crops = []
@@ -446,6 +452,7 @@ def multi_batch_process(raw, detector, output_size, bbox_xyxy):
         if not len(facial5points[i]):
             warp_and_crops.append(np.zeros((128,128,3),np.float32))
             continue
+        print("in_process", "\n"*100,det)
         points = np.reshape(facial5points[i].copy(), (2, 5))
         
         default_square = True
@@ -521,6 +528,7 @@ def face_recognition_multi(img_raw,arc_model,face_detector,Faces,draw_img=False,
         
     sims, idxs, feats = distinct_multi_face(arc_model,Faces.feats,patch)
     for i,b in enumerate(det):
+        print("b",b)
         if len(b):
             detect_score = b[4]
             boxes.append(b[:4])
@@ -679,4 +687,3 @@ def make_feature(opt,Faces,arc_model,face_detector,img_raw):
                 is_ok=True
     cv2.destroyWindow("candidate")
     cv2.destroyWindow('your choice')
-
