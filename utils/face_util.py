@@ -418,9 +418,6 @@ def make_patch_img(img_raw,bbox_xyxy):
     for i,box in enumerate(bbox_xyxy):
         batch = np.zeros_like(img_raw,dtype = np.float32)
         batch[box[1]:box[3],box[0]:box[2]] = img_raw[box[1]:box[3],box[0]:box[2]]
-        cv2.imshow("batch",np.uint8(batch))
-        cv2.waitKey(1)
-        print("plot")
         batch -= (104,117,123)
         img_batch[i] = batch
     img_batch = img_batch.transpose(0,3,1,2)
