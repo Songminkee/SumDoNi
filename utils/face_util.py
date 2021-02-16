@@ -30,6 +30,7 @@ class FaceFeatures(object):
             loaded =load_feat(path)
             self.feats[i] = loaded
             self.names.append(path.split('/')[-2])
+            
 
 class Info(object):
     """ It is a class that has information about similarity score, name, feature, box, etc. for one object.
@@ -230,7 +231,6 @@ class TrackFace(object):
                 self.track_id[id_num].age = -1
                 self.track_id[id_num].box = bbox[i]
                 self.track_id[id_num].end_time = str(now_time)
-                print("checked")
                 continue
             ret_id.append(id_num)
             ret_box.append(bbox[i])
@@ -243,14 +243,12 @@ class TrackFace(object):
             if identities[i] in self.track_id.keys():
                 ck_list [i] = True
                 id_num = identities[i]
-                print("find")
                 self.track_id[id_num].age = -1
                 self.track_id[id_num].box = bbox_xyxy[i]
                 if face_det_scores[i] > self.detect_threshold:
                     self.track_id[id_num].update(Faces,sim_scores[i],face_det_scores[i],features[i],patches[i],now_time,self.sim_threshold)
         
         for i in range(len(identities)):
-            print("face_score",face_det_scores[i])
             if ck_list[i] or face_det_scores[i] <= self.detect_threshold: continue
             best = 0
             best_id = -1
@@ -261,7 +259,6 @@ class TrackFace(object):
                 if sim> best:
                     best = sim
                     best_id = idx
-            print("sim",sim)
             if sim > self.sim_threshold:
                 self.track_id[identities[i]] = self.old_id[best_id]
                 del self.old_id[best_id]
@@ -439,17 +436,13 @@ def multi_batch_process(raw, detector, output_size, bbox_xyxy):
     img = make_patch_img(raw.copy(),bbox_xyxy)
 
     det, facial5points = detector.detect_multi_batch_faces(img)
-    print("img",img.shape)
-    print("det",det)
-    print("facial",facial5points)
-    if not len(det):
-        print("no face!")
+    
+    
     warp_and_crops = []
     for i in range(len(det)):
         if not len(facial5points[i]):
             warp_and_crops.append(np.zeros((128,128,3),np.float32))
             continue
-        print("in_process", "\n"*100,det)
         points = np.reshape(facial5points[i].copy(), (2, 5))
         
         default_square = True
@@ -477,8 +470,7 @@ def process(raw, detector, output_size):
     """
     img = raw.copy()
     det, facial5points = detector.detect_faces(img)
-    if not len(det):
-        print("no face!")
+    
     warp_and_crops = []
     for i in range(len(det)):
         points = np.reshape(facial5points[i].copy(), (2, 5))
@@ -494,7 +486,7 @@ def process(raw, detector, output_size):
         
     return det, np.array(warp_and_crops)
 
-def face_recognition_multi(img_raw,arc_model,face_detector,Faces,draw_img=False,indivisual_threshold=False, bbox_xyxy=None):
+def face_recognition_multi(img_raw,arc_model,face_detector,Faces,indivisual_threshold=False, bbox_xyxy=None):
     """The difference with the face_recognition function is that it creates multiple patch images based on
         person dection information before face detection is performed,
         and face detection and recognition are calculated in batch form at once. 
@@ -525,7 +517,6 @@ def face_recognition_multi(img_raw,arc_model,face_detector,Faces,draw_img=False,
         
     sims, idxs, feats = distinct_multi_face(arc_model,Faces.feats,patch)
     for i,b in enumerate(det):
-        print("b",b)
         if len(b):
             detect_score = b[4]
             boxes.append(b[:4])
@@ -533,38 +524,11 @@ def face_recognition_multi(img_raw,arc_model,face_detector,Faces,draw_img=False,
             sim_scores.append(sims[i])
             features.append(feats[i])
             patches.append(patch[i])
-
-            if draw_img:
-                sim , idx =  sims[i][idxs[i]], idxs[i]
-                draw_name = Faces.names[idx]
-                b = list(map(int, b))
-                cx = b[0]
-                cy = b[1] + 12
-                cy2 = b[1] 
-                cy3 = b[1] - 12
-                cy4 = b[1] - 24
-                cv2.rectangle(img_raw, (b[0], b[1]), (b[2], b[3]), (0, 0, 255), 2)
-
-                text = "detect={:.4f}".format(detect_score)
-                text2 = "name={}".format(draw_name)
-                cv2.putText(img_raw, text, (cx, cy),
-                                cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255))
-                cv2.putText(img_raw, text2, (cx, cy2),
-                                cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255))
-                text = "sim={:.4f} ".format(sim)
-                text2 = "number={} ".format(i)
-                
-                cv2.putText(img_raw, text, (cx, cy3),
-                                cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255))
-                cv2.putText(img_raw, text2, (cx, cy4),
-                                cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255))
         else:
             det_scores.append(0)
             sim_scores.append(np.zeros((Faces.feats.shape[0]),np.float32))
             features.append(np.zeros((1024),np.float32))
             patches.append(patch[i])
-    if draw_img:
-        return boxes, det_scores, sim_scores, features,patches,img_raw
     return boxes, det_scores, sim_scores,features,patches
 
 

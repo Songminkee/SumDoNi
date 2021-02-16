@@ -34,12 +34,10 @@ def face_track(config,args,arc_model,face_detector,person_detector,deep_sort,Fac
         out = cv2.VideoWriter(f'{args.result_name}.mp4', fcc, fps, (args.write_size,args.write_size))
     frame= 0
     while True:
-        t1 = time.time()
+        t1=time.time()
         ret, img_raw = cap.read()
-        print("read",time.time()-t1)
         if not ret:
             break
-        tic = time.time()
         if args.is_resize:
             img_raw = cv2.resize(img_raw, (args.resize, args.resize),interpolation=cv2.INTER_LINEAR)
         
@@ -48,7 +46,6 @@ def face_track(config,args,arc_model,face_detector,person_detector,deep_sort,Fac
 
         if img.ndimension() == 3:
             img = img.unsqueeze(0)
-        print(f"pre",time.time()-tic)
         t2 = time.time()
         pred = person_detector(img, augment=False)[0]
         
@@ -76,7 +73,6 @@ def face_track(config,args,arc_model,face_detector,person_detector,deep_sort,Fac
             t4 = time.time()
             outputs = deep_sort.update(xywhs, confss, img_raw)
             print(f"deepsort time = {time.time()-t4}")
-            print(outputs)
             if len(outputs):
                 t5=time.time()
                 identities,bbox_xyxy  = tracked.check_identities(outputs[:,:4],outputs[:,-1],frame)
@@ -84,7 +80,6 @@ def face_track(config,args,arc_model,face_detector,person_detector,deep_sort,Fac
                 if len(bbox_xyxy):
                     t6 =time.time()
                     face_boxes, face_det_scores, sim_scores, features,patches = face_recognition_multi(img_raw,arc_model,face_detector,Faces,
-                                                                                                        #draw_img=args.is_draw,
                                                                                                         indivisual_threshold=args.indivisual_threshold,
                                                                                                         bbox_xyxy= bbox_xyxy)
                     print(f"face detect,recog time = {time.time()-t6}")
@@ -95,10 +90,9 @@ def face_track(config,args,arc_model,face_detector,person_detector,deep_sort,Fac
         t9=time.time()
         tracked.age_update()
         print(f"age time = {time.time()-t9}")
-        
+        img_draw = img_raw.copy()
         if args.is_draw:
             t8 = time.time()
-            img_draw = img_raw.copy()
             tracked.draw_info(img_draw)
             print(f"draw time = {time.time()-t8}")
             cv2.putText(img_draw, f'now_frame={frame}', (0, 12),
@@ -111,7 +105,7 @@ def face_track(config,args,arc_model,face_detector,person_detector,deep_sort,Fac
                 break
 
         if args.write:
-            out.write(cv2.resize(img_raw, (args.write_size, args.write_size),interpolation=cv2.INTER_LINEAR))
+            out.write(cv2.resize(img_draw, (args.write_size, args.write_size),interpolation=cv2.INTER_LINEAR))
         
         print('tracked',tracked)
         print(f"time = {time.time()-t1}\n")

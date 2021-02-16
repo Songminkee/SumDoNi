@@ -4,7 +4,7 @@ class Config(object):
     # arcface cfg
     use_se = False
     arc_model_path = 'weights/arcface_resnet18_110.pth'
-    sim_threshold = 0.125
+    sim_threshold = 0.4
 
     # Retinaface cfg
     cfg_mnet = {
