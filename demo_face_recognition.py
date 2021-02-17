@@ -15,18 +15,13 @@ from arcface.models import resnet_face18
 from retinaface.detector import RetinafaceDetector
 from utils.face_util import *
 
+
 def img_mode(config,args,arc_model,detector,Faces):
     img_raw = cv2.imread(args.src_path)
     if args.is_resize:
         img_raw = cv2.resize(img_raw, (args.resize, args.resize),interpolation=cv2.INTER_LINEAR)
     img = img_raw.copy()
     det,patch = process(img,detector, output_size=(112, 112))
-    ps = []
-    
-    for i,p in enumerate(patch):
-        p = cv2.resize(p,(128,128))
-        feat = get_face_feature(arc_model,p)
-        ps.append(p)
     
     for i,b in enumerate(det):
         detect_score = b[4]
@@ -38,9 +33,9 @@ def img_mode(config,args,arc_model,detector,Faces):
         cy4 = b[1] - 24
         
         p = cv2.resize(patch[i],(128,128))
-        sim,idx = distinct_face(arc_model,Faces.feats,cv2.cvtColor(p,cv2.COLOR_BGR2GRAY))
-        
+        sim,idx = distinct_single_face(arc_model,Faces.feats,cv2.cvtColor(p,cv2.COLOR_BGR2GRAY))
         draw_name = Faces.names[idx]
+        
         if args.indivisual_threshold:
             if detect_score < opt.detect_threshold:
                 continue
@@ -75,7 +70,7 @@ def img_mode(config,args,arc_model,detector,Faces):
         cv2.imwrite(f'{args.result_name}.jpg',img_raw)
         
     k = cv2.waitKey(0)
-    if k==115:
+    if k==ord('s'):
         is_ok = False
         while not is_ok:
             number = int(input("input feature number : "))
@@ -85,9 +80,9 @@ def img_mode(config,args,arc_model,detector,Faces):
             answer = input("is it right? (Y/N) : ")
             if answer=='Y':
                 name = input("input feature name : ")
-                feat = get_face_feature(arc_model,cv2.cvtColor(p,cv2.COLOR_BGR2GRAY))
+                feat = get_face_feature(arc_model,cv2.cvtColor(p,cv2.COLOR_BGR2GRAY),preprocess=True)
                 save_feat(opt,name,feat,Faces)
-                answer = input("Will you keep saving it? (Y/N)")
+                answer = input("Will you keep saving it? (Y/N) ")
                 if answer=='N':
                     is_ok=True
     cv2.destroyAllWindows()
@@ -120,7 +115,7 @@ def video_mode(config,args,arc_model,detector,Faces):
                 cy4 = b[1] - 24
                 
                 p = cv2.resize(patch[i],(128,128))
-                sim,idx = distinct_face(arc_model,Faces.feats,cv2.cvtColor(p,cv2.COLOR_BGR2GRAY))
+                sim,idx = distinct_single_face(arc_model,Faces.feats,cv2.cvtColor(p,cv2.COLOR_BGR2GRAY))
                 
                 draw_name = Faces.names[idx]
                 if args.indivisual_threshold:
@@ -156,7 +151,7 @@ def video_mode(config,args,arc_model,detector,Faces):
         if args.write:
             out.write(cv2.resize(img_raw, (args.write_size, args.write_size),interpolation=cv2.INTER_LINEAR))
         k=cv2.waitKey(1)
-        if k==115:
+        if k==ord('s'):
             is_ok = False
             while not is_ok:
                 number = int(input("input feature number : "))
@@ -212,7 +207,7 @@ if __name__ == '__main__':
 
     opt = Config()
     arc_model = resnet_face18(opt.use_se)
-    load_model(arc_model, opt.test_model_path)
+    load_model(arc_model, opt.arc_model_path)
     
     cudnn.benchmark = True
     device = torch.device("cuda")

@@ -1,12 +1,11 @@
 import sys
-# sys.path.insert(0, './')
-# sys.path.insert(0, './yolov5')
+sys.path.insert(0, './yolov5')
 
 from utils.datasets import LoadImages, LoadStreams
 from utils.general import check_img_size, non_max_suppression, scale_coords
 from utils.torch_utils import select_device, time_synchronized
 from utils.parser import get_config
-from deep_sort_pytorch.deep_sort import DeepSort
+from deep_sort import DeepSort
 import argparse
 import os
 import platform
@@ -17,10 +16,17 @@ import cv2
 import torch
 import torch.backends.cudnn as cudnn
 
+import numpy as np
+import time
+import matplotlib.pyplot as plt
+import glob
 
+from config import Config
+from arcface.models import resnet_face18
+from retinaface.detector import RetinafaceDetector
+from utils.face_util import *
 
 palette = (2 ** 11 - 1, 2 ** 15 - 1, 2 ** 20 - 1)
-
 
 def bbox_rel(*xyxy):
     """" Calculates the relative bounding box from absolute pixel values. """
@@ -72,6 +78,7 @@ def detect(opt, save_img=False):
     # initialize deepsort
     cfg = get_config()
     cfg.merge_from_file(opt.config_deepsort)
+    print(opt.config_deepsort)
     deepsort = DeepSort(cfg.DEEPSORT.REID_CKPT,
                         max_dist=cfg.DEEPSORT.MAX_DIST, min_confidence=cfg.DEEPSORT.MIN_CONFIDENCE,
                         nms_max_overlap=cfg.DEEPSORT.NMS_MAX_OVERLAP, max_iou_distance=cfg.DEEPSORT.MAX_IOU_DISTANCE,
@@ -84,10 +91,15 @@ def detect(opt, save_img=False):
         shutil.rmtree(out)  # delete output folder
     os.makedirs(out)  # make new output folder
     half = device.type != 'cpu'  # half precision only supported on CUDA
-
+    print("weights",weights)
+    print("device",device)
+#    print(torch.load(weights, map_location=device))
     # Load model
+    #model = Model().load_state_dict(weights)
+
     model = torch.load(weights, map_location=device)[
         'model'].float()  # load to FP32
+    print("model",type(model))
     model.to(device).eval()
     if half:
         model.half()  # to FP16
@@ -95,10 +107,12 @@ def detect(opt, save_img=False):
     # Set Dataloader
     vid_path, vid_writer = None, None
     if webcam:
+        print("web")
         view_img = True
         cudnn.benchmark = True  # set True to speed up constant image size inference
         dataset = LoadStreams(source, img_size=imgsz)
     else:
+        print("image")
         view_img = True
         save_img = True
         dataset = LoadImages(source, img_size=imgsz)
@@ -121,12 +135,13 @@ def detect(opt, save_img=False):
         img /= 255.0  # 0 - 255 to 0.0 - 1.0
         if img.ndimension() == 3:
             img = img.unsqueeze(0)
-
+        print("img",img.shape)
         # Inference
         t1 = time_synchronized()
         pred = model(img, augment=opt.augment)[0]
         print('model prediction time : {}'.format(time.time() - t1))
-
+        print(pred.shape)
+        print("pred",pred)
         # Apply NMS
         pred = non_max_suppression(
             pred, opt.conf_thres, opt.iou_thres, classes=opt.classes, agnostic=opt.agnostic_nms)

@@ -38,10 +38,8 @@ class RetinafaceDetector:
         scale = scale.to(self.device)
 
         tic = time.time()
-        
         with torch.no_grad():
             loc, conf, landms = self.model(img)  # forward pass
-
         if self.priors==None:
             priorbox = PriorBox(self.cfg, image_size=(im_height, im_width))
             priors = priorbox.forward()
@@ -122,3 +120,73 @@ class RetinafaceDetector:
         landms = landms.transpose((0, 2, 1))
         landms = landms.reshape(-1, 10, )
         return dets, landms
+
+    def detect_multi_batch_faces(self, img_raw, top_k=1,  keep_top_k=1, resize=1):
+        img = np.float32(img_raw)
+        im_height, im_width = img[0].shape[-2:]
+        scale = torch.Tensor([im_width, im_height,im_width, im_height])
+        img = torch.from_numpy(img).to(self.device)
+        scale = scale.to(self.device)
+        
+        with torch.no_grad():
+            loc, conf, landms = self.model(img)  # forward pass
+        
+
+        if self.priors==None:
+            priorbox = PriorBox(self.cfg, image_size=(im_height, im_width))
+            priors = priorbox.forward()
+            self.priors = priors.to(self.device)
+            self.prior_data = self.priors.data
+
+        boxes = [decode(loc[i].data.squeeze(0), self.prior_data, self.cfg['variance']) for i in range(len(loc))]
+        boxes = [boxes[i] * scale / resize for i in range(len(boxes))]
+        
+        ret_det, ret_facial5points = [], []
+
+        for b,c,l in zip(boxes,conf,landms):
+            # cpu
+            b = b.cpu().numpy()
+            s = c.squeeze(0).data.cpu().numpy()[:, 1]
+            
+
+            l = decode_landm(l.data.squeeze(0), self.prior_data, self.cfg['variance'])
+            scale1 = torch.Tensor([img.shape[3], img.shape[2], img.shape[3], img.shape[2],
+                                img.shape[3], img.shape[2], img.shape[3], img.shape[2],
+                                img.shape[3], img.shape[2]])
+            scale1 = scale1.to(self.device)
+            l = l * scale1 / resize
+            l = l.cpu().numpy()
+
+            # ignore low scores
+            inds = np.where(s > self.confidence_threshold)[0]
+            b = b[inds]
+            l = l[inds]
+            s = s[inds]
+            
+            # keep top-K before NMS
+            order = s.argsort()[::-1][:top_k]
+            
+            b = b[order]
+            l = l[order]
+            s = s[order]
+
+
+            # do NMS
+            dets = np.hstack((b, s[:, np.newaxis])).astype(np.float32, copy=False)
+            
+            keep = py_cpu_nms(dets, self.nms_threshold)
+            
+            
+            dets = dets[keep, :]
+            l = l[keep]
+
+            # keep top-K faster NMS
+            dets = dets[:keep_top_k, :]
+            l = l[:keep_top_k, :]
+            
+            l = l.reshape((-1, 5, 2))
+            l = l.transpose((0, 2, 1))
+            l = l.reshape(-1, 10, )
+            ret_det.append(dets.reshape(-1))
+            ret_facial5points.append(l)
+        return ret_det, ret_facial5points
