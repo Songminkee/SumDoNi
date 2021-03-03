@@ -1,6 +1,8 @@
 .idea
 .vscode/
-inputs/
-results/
-weights/
-log/
+tracker/inputs/
+tracker/results/
+tracker/weights/
+tracker/log/
+
+*.pyc
