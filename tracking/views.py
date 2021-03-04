@@ -12,9 +12,11 @@ class TrackingView(TemplateView):
 class TrackingOnView(View):
 
     def get(self, request, *args, **kwargs):
-        ip = '211.55.92.51'
-        port = 5000
-        url = 'rtsp://hanamart-public:hanamart-public@121.151.100.57:9001//h264Preview_01_sub'
+        cctv_id, cctv_pw = 'hanamart-public', 'hanamart-public'
+        ip = '121.151.100.57'
+        port = 9001
+        cctv_quality = 'sub' # main: QHD, sub: HD or SD?
+        url = f'rtsp://{cctv_id}:{cctv_pw}@{ip}:{port}//h264Preview_01_{cctv_quality}'
 
         # Check IP camera activation
         repeat_count, is_activate = 0, False
