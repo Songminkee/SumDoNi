@@ -4,5 +4,6 @@ tracker/inputs/
 tracker/results/
 tracker/weights/
 tracker/log/
-
+static/log/
+db.sqlite3
 *.pyc

@@ -1,0 +1,20 @@
+<!-- templates/history/history_detail.html -->
+{% extends 'base.html' %}
+{% block title %}History{% endblock %}
+{% load static %}
+{% block content %}
+History Page
+{% if user.is_authenticated %}
+    Hi {{ user.username }}! <br>
+    <h1>{{log.start_datetime}} ~ {{log.end_datetime}} </h1>
+    <div>
+        <video width="530" height="440" controls autoplay>
+            <source src={% static log.video_path %} type="video/mp4"> </source>
+        </video>
+    </div>
+{% else %}
+  <p>You are not logged in</p>
+  <a href="{% url 'login' %}">Log In</a>
+  <a href="{% url 'signup' %}">Sing Up</a>
+{% endif %}
+{% endblock %}

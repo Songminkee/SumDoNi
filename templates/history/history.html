@@ -5,4 +5,19 @@
 
 {% block content %}
 History Page
+{% if user.is_authenticated %}
+    Hi {{ user.username }}! <br>
+    <div>
+        <h1>Your borrower list!</h1>
+            {% for borrower in borrowers%}
+                <a href="/history/{{borrower.bid}}">
+                    <h4>{{borrower.b_name}}</h4>
+                </a>
+            {% endfor %}
+    </div>
+{% else %}
+  <p>You are not logged in</p>
+  <a href="{% url 'login' %}">Log In</a>
+  <a href="{% url 'signup' %}">Sing Up</a>
+{% endif %}
 {% endblock %}
