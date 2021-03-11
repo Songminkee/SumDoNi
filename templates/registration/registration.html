@@ -5,4 +5,9 @@
 
 {% block content %}
 Registration Page
+<form method="POST" action="face_recognition" enctype="multipart/form-data"> 
+    {% csrf_token %} 
+    {{ form.as_p }} 
+    <input type="submit" value="Submit"> 
+</form>
 {% endblock %}
