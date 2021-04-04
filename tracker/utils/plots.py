@@ -18,8 +18,8 @@ import yaml
 from PIL import Image, ImageDraw
 from scipy.signal import butter, filtfilt
 
-from utils.general import xywh2xyxy, xyxy2xywh
-from utils.metrics import fitness
+from tracker.utils.general import xywh2xyxy, xyxy2xywh
+from tracker.utils.metrics import fitness
 
 # Settings
 matplotlib.rc('font', **{'size': 11})

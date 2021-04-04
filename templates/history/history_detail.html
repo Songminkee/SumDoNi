@@ -1,0 +1,24 @@
+<!-- templates/history/history_detail.html -->
+{% extends 'base.html' %}
+
+{% block title %}History{% endblock %}
+
+{% block content %}
+History Page
+{% if user.is_authenticated %}
+    Hi {{ user.username }}! <br>
+    <div>
+        <h1>Log </h1>
+            {% for log in logs%}
+                <a href="/history/{{bid}}/{{log.tid}}">
+                    <h4>{{log.start_datetime}} ~ {{log.end_datetime}}</h4>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+{% else %}
+  <p>You are not logged in</p>
+  <a href="{% url 'login' %}">Log In</a>
+  <a href="{% url 'signup' %}">Sing Up</a>
+{% endif %}
+{% endblock %}

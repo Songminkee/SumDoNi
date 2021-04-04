@@ -10,10 +10,10 @@ import time
 import matplotlib.pyplot as plt
 import glob
 
-from config import Config
-from arcface.models import resnet_face18
-from retinaface.detector import RetinafaceDetector
-from utils.face_util import *
+from .config import Config
+from .arcface.models import resnet_face18
+from .retinaface.detector import RetinafaceDetector
+from .utils.face_util import *
 
 
 def img_mode(config,args,arc_model,detector,Faces):
@@ -33,34 +33,36 @@ def img_mode(config,args,arc_model,detector,Faces):
         cy4 = b[1] - 24
         
         p = cv2.resize(patch[i],(128,128))
-        sim,idx = distinct_single_face(arc_model,Faces.feats,cv2.cvtColor(p,cv2.COLOR_BGR2GRAY))
-        draw_name = Faces.names[idx]
-        
-        if args.indivisual_threshold:
-            if detect_score < opt.detect_threshold:
-                continue
-            if sim < opt.sim_threshold:
-                draw_name = '???'
-                sim = -1.
-        else:
-            if detect_score* sim < opt.detect_threshold * opt.sim_threshold:#sim < 0.15 :
-                draw_name = '???'
-                sim = -1.
+        cv2.imshow('patch', p)
+        cv2.waitKey(0)
+        # sim,idx = distinct_single_face(arc_model,Faces.feats,cv2.cvtColor(p,cv2.COLOR_BGR2GRAY))
+        # draw_name = Faces.names[idx]
+
+        # if args.indivisual_threshold:
+        #     if detect_score < opt.detect_threshold:
+        #         continue
+        #     if sim < opt.sim_threshold:
+        #         draw_name = '???'
+        #         sim = -1.
+        # else:
+        #     if detect_score* sim < opt.detect_threshold * opt.sim_threshold:#sim < 0.15 :
+        #         draw_name = '???'
+        #         sim = -1.
         cv2.rectangle(img_raw, (b[0], b[1]), (b[2], b[3]), (0, 0, 255), 2)
 
         text = "detect={:.4f}".format(detect_score)
-        text2 = "name={}".format(draw_name)
+        # text2 = "name={}".format(draw_name)
         cv2.putText(img_raw, text, (cx, cy),
                         cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255))
-        cv2.putText(img_raw, text2, (cx, cy2),
-                        cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255))
-        text = "sim={:.4f} ".format(sim)
+        # cv2.putText(img_raw, text2, (cx, cy2),
+        #                 cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255))
+        # text = "sim={:.4f} ".format(sim)
         text2 = "number={} ".format(i)
-        
+
         cv2.putText(img_raw, text, (cx, cy3),
                         cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255))
-        cv2.putText(img_raw, text2, (cx, cy4),
-                        cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255))
+        # cv2.putText(img_raw, text2, (cx, cy4),
+        #                 cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255))
     plt.show()
 
     cv2.putText(img_raw, 'Save feature of face, Press "s"', (0, 12),
