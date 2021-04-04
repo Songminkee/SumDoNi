@@ -24,7 +24,7 @@ SECRET_KEY = 'd!0t0(k1lwx)+js8apq$_vzv#=+wyhk%&qlw_5qzt0m^7bk^y('
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost']
 
 
 # Application definition
@@ -132,3 +132,7 @@ STATIC_ROOT = os.path.join(BASE_DIR,'.static_root')
 
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
+
+# Load models
+from .tracking_utils import TrackingModels
+TRACKING_MODELS = TrackingModels()
