@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 import glob
 import os
-from utils.align_faces import warp_and_crop_face, get_reference_facial_points
+from .align_faces import warp_and_crop_face, get_reference_facial_points
 
 
 class FaceFeatures(object):

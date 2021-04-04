@@ -1,4 +1,4 @@
-from utils.parser import get_config
+from ..utils.parser import get_config
 
 class Config(object):
     # arcface cfg
@@ -37,11 +37,11 @@ class Config(object):
     yolo_nms_threshold = 0.5
     
     # deepsort cfg
-    deepsort_config_path = 'config/deep_sort.yaml'
+    deepsort_config_path = 'tracker/config/deep_sort.yaml'
     deepsort_cfg = get_config()
     deepsort_cfg.merge_from_file(deepsort_config_path)
 
     # cfg
-    features_path = './features'
+    features_path = './tracker/features'
 
     
