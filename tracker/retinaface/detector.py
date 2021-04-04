@@ -5,10 +5,10 @@ import torch
 import torch.backends.cudnn as cudnn
 
 #from retinaface.data import cfg_mnet
-from tracker.retinaface.layers.functions.prior_box import PriorBox
-from tracker.retinaface.loader import load_model
-from tracker.retinaface.utils.box_utils import decode, decode_landm
-from tracker.retinaface.utils.nms.py_cpu_nms import py_cpu_nms
+from .layers.functions.prior_box import PriorBox
+from .loader import load_model
+from .utils.box_utils import decode, decode_landm
+from .utils.nms.py_cpu_nms import py_cpu_nms
 import torchvision
 import time
 

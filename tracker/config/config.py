@@ -1,4 +1,5 @@
-from tracker.utils.parser import get_config
+from ..utils.parser import get_config
+
 
 class Config(object):
     # arcface cfg

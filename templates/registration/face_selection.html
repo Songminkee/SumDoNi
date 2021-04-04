@@ -1,0 +1,22 @@
+<!-- templates/registration/registration.html -->
+{% extends 'base.html' %}
+
+{% block title %}Registration{% endblock %}
+
+{% block content %}
+<h1> Face Selection Page </h1>
+<br>
+
+<form method="POST" action="save_face" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% for i, img_str in zip_range %}
+    Borrower name {{ i }} : <input type="text" name='b_name'><br><br>
+    <input type="checkbox" name="images" value="{{ i }}">
+    <input type="hidden" name="hidden_image" value="{{ img_str }}">
+    <img src="data:image/png;base64,{{ img_str }}"><br>
+    <br>
+    {% endfor %}
+    <input type="submit" value="Submit"><br>
+    {{ form.as_p }}
+</form>
+{% endblock %}

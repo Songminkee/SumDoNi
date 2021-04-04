@@ -3,8 +3,7 @@ from __future__ import print_function
 import torch
 
 #from retinaface.data import cfg_mnet, cfg_re50
-from tracker.retinaface.models.retinaface import RetinaFace
-
+from .models.retinaface import RetinaFace
 
 def check_keys(model, pretrained_state_dict):
     ckpt_keys = set(pretrained_state_dict.keys())
