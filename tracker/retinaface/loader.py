@@ -5,7 +5,6 @@ import torch
 #from retinaface.data import cfg_mnet, cfg_re50
 from .models.retinaface import RetinaFace
 
-
 def check_keys(model, pretrained_state_dict):
     ckpt_keys = set(pretrained_state_dict.keys())
     model_keys = set(model.state_dict().keys())

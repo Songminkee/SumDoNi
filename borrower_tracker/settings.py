@@ -26,7 +26,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -132,3 +131,7 @@ STATIC_ROOT = os.path.join(BASE_DIR,'.static_root')
 
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
+
+# Load models
+from .tracking_utils import TrackingModels
+TRACKING_MODELS = TrackingModels()

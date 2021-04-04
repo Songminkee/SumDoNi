@@ -17,8 +17,8 @@ class FaceFeatures(object):
         Args:
             root_path ([string]) : This is the root path of the features you have saved.
     """
-    def __init__(self,root_path='./features'):
-        folders = glob.glob(root_path+'/*')
+    def __init__(self, root_path='./tracker/features'):
+        folders = glob.glob(root_path + '/*/*/')
         paths = []
         for folder in folders:
             files = glob.glob(folder+'/*.npy')
@@ -27,7 +27,7 @@ class FaceFeatures(object):
         self.feats = np.zeros((len(paths),1024),dtype=np.float32)
         self.names = []
         for i,path in enumerate(paths):
-            loaded =load_feat(path)
+            loaded = load_feat(path)
             self.feats[i] = loaded
             self.names.append(path.split('/')[-2])
             
@@ -70,7 +70,7 @@ class Info(object):
                 sim_threshold ([float]): Threshold value for maximum similarity score.
 
     """
-    def __init__(self, box, sim, face_det_score,feature,patch,start_time):
+    def __init__(self, box, sim, face_det_score, feature,patch, start_time):
         self.name = '???'
         self.cnt = 0
         self.sim = sim
@@ -94,22 +94,20 @@ class Info(object):
         det_score : {self.face_det_score}\n"""
         return information
 
-    def update(self,Faces,sim_score,face_det_score,feature,patch,now_time,sim_threshold):
+    def update(self, Faces, sim_score, face_det_score, feature, patch, now_time, sim_threshold):
         self.features = np.concatenate([self.features,np.expand_dims(feature,0)],0)
         self.patch = np.concatenate([self.patchs,patch],1)
         self.sim += sim_score
-        self.cnt+=1
+        self.cnt += 1
         self.end_time = str(now_time)
         self.face_det_score = face_det_score
         idx = np.argmax(self.sim / self.cnt)
         self.sim_score = self.sim[idx] / self.cnt        
         if self.cnt == 5:
             if self.sim[idx] /5 >= sim_threshold:
-                
                 self.name = Faces.names[idx]                
             else:
                 self.name = 'Unknown'
-    
 
 
 class TrackFace(object):
@@ -165,7 +163,7 @@ class TrackFace(object):
                 patch ([numpy array]) : The patch image of detected face.
                 now_time ([float]) : The current time is entered to update the end time.
     """
-    def __init__(self,max_cnt=5,detect_threshold=0.8, sim_threshold=0.15,log_path='./log',day='0'):
+    def __init__(self, max_cnt=5, detect_threshold=0.8, sim_threshold=0.15, log_path='./log', day='0'):
         self.track_id = dict()
         self.max_cnt = max_cnt
         self.detect_threshold = detect_threshold
@@ -211,17 +209,30 @@ class TrackFace(object):
         f.writelines(f'{info.name},{info.start_time},{info.end_time}\n')
     
     def age_update(self):
+        '''Update an age like a garbage collector.
+        
+        Args:
+            no arguments.
+
+        Returns:
+            removed_old_ids (dict): dictionary of removed old ids permanently
+        '''
+        # Remove old tracked information (age >= 500)
+        removed_old_ids = {}
         for idx in list(self.old_id.keys()):
             self.old_id[idx].age +=1
             if self.old_id[idx].age >= 500:
-                self.write_info(self.old_id[idx])         
-                del self.old_id[idx]
+                self.write_info(self.old_id[idx])
+                removed_old_ids[idx] = self.old_id[idx]
 
+        # Move traced information into old tracked information (age >= 10)
         for idx in list(self.track_id.keys()):
             self.track_id[idx].age += 1
             if self.track_id[idx].age >= 10:
                 self.old_id[idx] = self.track_id[idx]
                 del self.track_id[idx]
+
+        return removed_old_ids
 
     def check_identities(self,bbox,identities,now_time):
         ret_id, ret_box = [], []
@@ -237,7 +248,9 @@ class TrackFace(object):
 
         return ret_id,ret_box
 
-    def update(self,Faces,identities, bbox_xyxy,face_boxes,face_det_scores,sim_scores,features,patches,now_time):
+    def update(self, Faces, identities, bbox_xyxy, face_boxes,
+               face_det_scores, sim_scores, features, patches, now_time):
+        # Update tracking information which exist in tracked ids
         ck_list = [0] * len(identities)
         for i in range(len(identities)):
             if identities[i] in self.track_id.keys():
@@ -246,29 +259,47 @@ class TrackFace(object):
                 self.track_id[id_num].age = -1
                 self.track_id[id_num].box = bbox_xyxy[i]
                 if face_det_scores[i] > self.detect_threshold:
-                    self.track_id[id_num].update(Faces,sim_scores[i],face_det_scores[i],features[i],patches[i],now_time,self.sim_threshold)
-        
+                    self.track_id[id_num].update(Faces, sim_scores[i],
+                                                 face_det_scores[i],
+                                                 features[i], patches[i],
+                                                 now_time, self.sim_threshold)
+
+        # Update tracking information from old tracked information
+        # or create new tracking information
         for i in range(len(identities)):
             if ck_list[i] or face_det_scores[i] <= self.detect_threshold: continue
-            best = 0
-            best_id = -1
-            sim = 0
+
+            # Find the best tracking information from old ids
+            best, best_id, sim = 0, -1, 0
             for idx in self.old_id.keys():
-                sim = cosin_metric(features[i][np.newaxis,:],self.old_id[idx].features,multi=True)
+                sim = cosin_metric(features[i][np.newaxis,:],
+                                   self.old_id[idx].features,
+                                   multi=True)
                 sim = np.sum(sim) / self.old_id[idx].cnt
-                if sim> best:
+                if sim > best:
                     best = sim
                     best_id = idx
+
+            # Update tracking information from old tracked information
             if sim > self.sim_threshold:
                 self.track_id[identities[i]] = self.old_id[best_id]
                 del self.old_id[best_id]
                 self.track_id[identities[i]].age = -1
                 self.track_id[identities[i]].box = bbox_xyxy[i]
-                if self.track_id[identities[i]].cnt < self.max_cnt :
-                    self.track_id[identities[i]].update(Faces,sim_scores[i],face_det_scores[i],features[i],patches[i],now_time,self.sim_threshold)
+                if self.track_id[identities[i]].cnt < self.max_cnt:
+                    self.track_id[identities[i]].update(Faces, sim_scores[i],
+                                                        face_det_scores[i],
+                                                        features[i], patches[i],
+                                                        now_time, self.sim_threshold)
+            # Create new tracking information
             else:
-                self.track_id[identities[i]] = Info(bbox_xyxy[i],  sim_scores[i],face_det_scores[i],features[i],patches[i],now_time)
-                self.track_id[identities[i]].cnt+=1
+                self.track_id[identities[i]] = Info(bbox_xyxy[i], sim_scores[i],
+                                                    face_det_scores[i], features[i],
+                                                    patches[i], now_time)
+                self.track_id[identities[i]].cnt += 1
+
+    def is_tracked(self):
+        return self.track_id or self.old_id
 
 def load_model(model, model_path):
     """This is a function for the arc face model. Load and apply state dict from the saved file.
@@ -529,7 +560,7 @@ def face_recognition_multi(img_raw,arc_model,face_detector,Faces,indivisual_thre
             sim_scores.append(np.zeros((Faces.feats.shape[0]),np.float32))
             features.append(np.zeros((1024),np.float32))
             patches.append(patch[i])
-    return boxes, det_scores, sim_scores,features,patches
+    return boxes, det_scores, sim_scores, features, patches, idxs
 
 
 def face_recognition(img_raw,arc_model,detector,Faces,detect_threshold=0.8,sim_threshold=0.125,draw_img=False,indivisual_threshold=False):

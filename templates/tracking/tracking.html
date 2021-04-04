@@ -5,10 +5,19 @@
 
 {% block content %}
 <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-  <input type="radio" class="btn-check" name="btn-tr" id="on" autocomplete="off">
-  <label class="btn btn-outline-primary" for="on">Tracking On</label>
-  
-  <input type="radio" class="btn-check" name="btn-tr" id="off" autocomplete="off" checked>
-  <label class="btn btn-outline-primary" for="off">Tracking Off</label>
+  {% if user.tracking_status %}
+    <input type="radio" class="btn-check" name="btn-tr" id="on" autocomplete="off" checked>
+    <label class="btn btn-outline-primary" for="on">Tracking On</label>
+    
+    <input type="radio" class="btn-check" name="btn-tr" id="off" autocomplete="off">
+    <label class="btn btn-outline-primary" for="off">Tracking Off</label>
+  {% else %}
+    <input type="radio" class="btn-check" name="btn-tr" id="on" autocomplete="off">
+    <label class="btn btn-outline-primary" for="on">Tracking On</label>
+    
+    <input type="radio" class="btn-check" name="btn-tr" id="off" autocomplete="off" checked>
+    <label class="btn btn-outline-primary" for="off">Tracking Off</label>
+  {% endif %}
+  {{ msg }}
 </div>
 {% endblock %}
