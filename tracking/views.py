@@ -16,7 +16,6 @@ from asgiref.sync import sync_to_async
 from accounts.models import User
 from registration.models import Borrower
 from history.models import TrackingLog, BorrowerTrackingLog
-from .tracking_utils import track_face
 
 import subprocess
 import os
@@ -134,10 +133,6 @@ class TrackingOffView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = User.objects.get(username=self.request.user)
         user.tracking_status = False
-        if user.pid != '':
-            os.kill(int(user.pid), 9)
-            print(f'Process {user.pid} is killed!!')
-            user.pid = ''
             
         user.save()
         return HttpResponseRedirect('/tracking')
