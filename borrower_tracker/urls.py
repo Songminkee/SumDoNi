@@ -25,4 +25,5 @@ urlpatterns = [
     path('tracking/', include('tracking.urls')),
     path('history/', include('history.urls')),
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
+    path('about_us/', TemplateView.as_view(template_name='about_us.html'), name='about_us'),
 ]
