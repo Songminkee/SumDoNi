@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from accounts.models import User
 from registration.models import Borrower
 from history.models import TrackingLog
+from django.conf import settings
 import glob
 import os
 
@@ -15,7 +16,12 @@ class HistoryView(TemplateView):
 
 class HistoryViewDetail(TemplateView):
     def get(self,request,bid,*args, **kwargs): 
-        logs = TrackingLog.objects.filter(borrowertrackinglog__bid=bid)        
+        logs = TrackingLog.objects.filter(borrowertrackinglog__bid=bid)
+        
+        for log in logs.values():
+            if not os.access(os.path.join(settings.STATIC_ROOT,log['video_path']),os.R_OK):
+                TrackingLog.objects.get(video_path=log['video_path']).delete()
+
         return render(request,'history/history_detail.html',{'logs':logs,'bid':bid})
 
 class HistoryVideo(TemplateView):
