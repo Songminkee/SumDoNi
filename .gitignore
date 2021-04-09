@@ -1,6 +1,7 @@
 .idea
 .vscode/
 tracker/inputs/
+tracker/features/
 tracker/results/
 tracker/weights/
 static/log/
