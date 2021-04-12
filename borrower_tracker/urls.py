@@ -28,4 +28,6 @@ urlpatterns = [
     path('history/', include('history.urls')),
     re_path(r'^static/(?P<path>.*)$', serve, {'document_root':settings.STATIC_ROOT}),
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
+    path('about_us/', TemplateView.as_view(template_name='about_us.html'), name='about_us'),
 ]
+
