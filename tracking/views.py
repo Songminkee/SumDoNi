@@ -60,16 +60,16 @@ class TrackingOnView(View):
 
         # Check IP camera activation
         repeat_count, is_activate = 0, True
-        cap = cv2.VideoCapture('sample_video_without_mask2.mp4')
-        # while repeat_count < 3:
-        #     cap = cv2.VideoCapture(url)
-        #     if not cap.isOpened():
-        #         cv2.waitKey(1)
-        #         repeat_count += 1
-        #         print(f'Try load Video (#{repeat_count})')
-        #     else:
-        #         is_activate = True
-        #         break
+        # cap = cv2.VideoCapture('sample_video_without_mask2.mp4')
+        while repeat_count < 3:
+            cap = cv2.VideoCapture(url)
+            if not cap.isOpened():
+                cv2.waitKey(1)
+                repeat_count += 1
+                print(f'Try load Video (#{repeat_count})')
+            else:
+                is_activate = True
+                break
 
         if is_activate:
             print('Tracking is activated!!')
@@ -82,35 +82,6 @@ class TrackingOnView(View):
             # Track faces
             loop = asyncio.get_event_loop()
             loop.create_task(self.tracking(cap, request.user))
-
-            # while True:
-            #     # Extract a frame from a remote IP CCTV
-            #     ret, frame = cap.read()
-            #     if not ret:
-            #         break
-
-            #     # Preprocess a frame
-            #     device = torch.device("cuda")
-            #     img = torch.from_numpy(np.float32(frame.copy()).transpose(2,0,1))
-            #     print(img.size())
-            #     img = img.to(device).half()
-            #     img /= 255.0
-            #     if img.ndimension() == 3:
-            #         img = img.unsqueeze(0)
-
-            #     # https://docs.python.org/ko/3.9/library/subprocess.html
-            #     # p = subprocess.Popen(['python', './tracker/test.py'])
-            #     # print(f'Process {p.pid} is started!!')
-            #     # settings.PROCESS_DICT[p.pid] = p
-            #     # print(settings.PROCESS_DICT)
-            #     # user.pid = p.pid
-
-            #     person_detector = settings.TRACKING_MODELS.person_detector
-            #     pred = person_detector(img, augment=False)[0]
-            #     print(f'User: {user.uid}')
-
-            #     import time
-            #     time.sleep(1)
 
             return HttpResponseRedirect('/tracking')
         else:

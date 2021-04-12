@@ -104,7 +104,8 @@ class TrackingModels:
         for tracked_id, t_info in tracked_ids.items():
             # Remove Unknown and ???
             if t_info.name == 'Unknown' or t_info.name == '???':
-                del vq_tidxes[tracked_id]
+                if vq_tidxes.get(tracked_id):
+                    del vq_tidxes[tracked_id]
                 continue
 
             borrower = await sync_to_async(Borrower.objects.get,
