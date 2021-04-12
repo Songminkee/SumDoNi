@@ -156,11 +156,8 @@ class TrackingModels:
 
             # Create a VideoWriter to save Video
             fps = 30
-            # cv2.VideoWriter_fourcc('D', 'I', 'V', 'X')
             fcc = cv2.VideoWriter_fourcc(*'FMP4')
             out = skvideo.io.FFmpegWriter(file_path, outputdict={'-vcodec': 'libx264'})
-            # out = cv2.VideoWriter(file_path, fcc, fps,
-            #                       (write_size, write_size))
 
             # Save frames
             for frame in list(vqueue):
@@ -168,11 +165,8 @@ class TrackingModels:
                                                 interpolation=cv2.INTER_LINEAR),
                                      cv2.COLOR_BGR2RGB)
                 out.writeFrame(frame)
-                # out.write(cv2.resize(frame, (resize, resize),
-                #           interpolation=cv2.INTER_LINEAR))
 
             # Release VideoWriter
-            # out.release()
             out.close()
             out = None
 
@@ -285,11 +279,18 @@ class TrackingModels:
 
                     # Recognize faces and update tracking information
                     if len(bbox_xyxy):
+                        # Extract borrower features of this user
+                        face_features = []
+                        for uid, feature in zip(self.Faces.uids, self.Faces.feats):
+                            if user.uid == uid:
+                                face_features.append(feature)
+                        face_features = np.asarray(face_features)
+
                         # Recognize Faces
                         t6 = time.time()
                         face_boxes, face_det_scores, sim_scores, features, patches, idxs = \
                             face_recognition_multi(img_raw, self.arc_model,
-                                                   self.face_detector, self.Faces,
+                                                   self.face_detector, face_features,
                                                    indivisual_threshold=indivisual_threshold,
                                                    bbox_xyxy=bbox_xyxy)
                         print(f"face detect,recog time = {time.time()-t6}")

@@ -9,6 +9,63 @@
       <div class="inputs w-full max-w-2xl p-6 mx-auto">
           <form class="mt-6 border-gray-400 pt-4">
               <div class='flex flex-wrap -mx-3 mb-6'>
+                <div class="personal w-full border-gray-400 pt-4">
+                  <h2 class="text-2xl text-gray-900">외상자 추적 활성화</h2>
+                  <div class="btn-group mt-4" role="group" aria-label="Basic radio toggle button group">
+                    {% if user.tracking_status %}
+                      <input type="radio" class="btn-check" name="btn-tr" id="on" autocomplete="off" checked>
+                      <label class="btn btn-outline-primary" for="on">Tracking On</label>
+                      
+                      <input type="radio" class="btn-check" name="btn-tr" id="off" autocomplete="off">
+                      <label class="btn btn-outline-primary" for="off">Tracking Off</label>
+                    {% else %}
+                      <input type="radio" class="btn-check" name="btn-tr" id="on" autocomplete="off">
+                      <label class="btn btn-outline-primary" for="on">Tracking On</label>
+                      
+                      <input type="radio" class="btn-check" name="btn-tr" id="off" autocomplete="off" checked>
+                      <label class="btn btn-outline-primary" for="off">Tracking Off</label>
+                    {% endif %}
+                    {{ msg }}
+                    <!-- Not toggled switch -->
+                    <!-- <br /><br /><br />
+                    <div class="block w-full h-full flex flex-col justify-center items-center">
+                      <div class="flex justify-center items-center">
+                      <span class="">
+                          <svg class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                          </svg>
+                      </span> -->
+                      <!-- Switch Container -->
+                      <!-- <div :class="{ 'bg-cyan-700': toggleActive}" class="w-14 h-7 flex items-center bg-gray-300 rounded-full mx-3 px-1" @click="handleToggleActive"> -->
+                          <!-- Switch -->
+                          <!-- <div class="bg-white w-5 h-5 rounded-full shadow-md transform" :class="{ 'translate-x-7': toggleActive}"></div>
+                      </div>
+                      <span class="">
+                          <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                          </svg>
+                      </span>
+                    </div> -->
+                    <!-- Toggled switch -->
+                    <!-- <div class="flex justify-center items-center mt-4">
+                      <span class="">
+                          <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                          </svg>
+                      </span> -->
+                      <!-- Switch Container -->
+                      <!-- <div class="w-14 h-7 flex items-center bg-gray-300 rounded-full mx-3 px-1 bg-blue-700" @click="handleToggleActive"> -->
+                          <!-- Switch -->
+                          <!-- <div class="bg-white w-5 h-5 rounded-full shadow-md transform translate-x-7"></div> -->
+                      <!-- </div> -->
+                      <!-- <span class="">
+                          <svg class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                          </svg>
+                      </span>
+                    </div> -->
+                    </div>
+                </div>
                   <div class="personal w-full border-gray-400 pt-4">
                     <h2 class="text-2xl text-gray-900">계정 정보</h2>
                     <div class='w-full md:w-full px-3 mt-4 mb-6'>
@@ -56,64 +113,6 @@
                     </div>
                     <div class="flex justify-end">
                       <button class="appearance-none bg-gray-200 text-gray-900 px-2 py-1 shadow-sm border border-gray-400 rounded-md mr-3 mb-3" type="submit">변경사항 저장</button>
-                    </div>
-                  </div>
-                  <div class="personal w-full border-gray-400 pt-4">
-                    <h2 class="text-2xl text-gray-900">외상자 추적 활성화</h2>
-                    <div class="btn-group mt-4" role="group" aria-label="Basic radio toggle button group">
-                      {% if user.tracking_status %}
-                        <input type="radio" class="btn-check" name="btn-tr" id="on" autocomplete="off" checked>
-                        <label class="btn btn-outline-primary" for="on">Tracking On</label>
-                        
-                        <input type="radio" class="btn-check" name="btn-tr" id="off" autocomplete="off">
-                        <label class="btn btn-outline-primary" for="off">Tracking Off</label>
-                      {% else %}
-                        <input type="radio" class="btn-check" name="btn-tr" id="on" autocomplete="off">
-                        <label class="btn btn-outline-primary" for="on">Tracking On</label>
-                        
-                        <input type="radio" class="btn-check" name="btn-tr" id="off" autocomplete="off" checked>
-                        <label class="btn btn-outline-primary" for="off">Tracking Off</label>
-                      {% endif %}
-                      {{ msg }}
-                      <!-- Not toggled switch -->
-                      <!-- <br /><br /><br />
-                      <div class="block w-full h-full flex flex-col justify-center items-center">
-                        <div class="flex justify-center items-center">
-                        <span class="">
-                            <svg class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                            </svg>
-                        </span> -->
-                        <!-- Switch Container -->
-                        <!-- <div :class="{ 'bg-cyan-700': toggleActive}" class="w-14 h-7 flex items-center bg-gray-300 rounded-full mx-3 px-1" @click="handleToggleActive"> -->
-                            <!-- Switch -->
-                            <!-- <div class="bg-white w-5 h-5 rounded-full shadow-md transform" :class="{ 'translate-x-7': toggleActive}"></div>
-                        </div>
-                        <span class="">
-                            <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                            </svg>
-                        </span>
-                      </div> -->
-                      <!-- Toggled switch -->
-                      <!-- <div class="flex justify-center items-center mt-4">
-                        <span class="">
-                            <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                            </svg>
-                        </span> -->
-                        <!-- Switch Container -->
-                        <!-- <div class="w-14 h-7 flex items-center bg-gray-300 rounded-full mx-3 px-1 bg-blue-700" @click="handleToggleActive"> -->
-                            <!-- Switch -->
-                            <!-- <div class="bg-white w-5 h-5 rounded-full shadow-md transform translate-x-7"></div> -->
-                        <!-- </div> -->
-                        <!-- <span class="">
-                            <svg class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                            </svg>
-                        </span>
-                      </div> -->
-                      </div>
                     </div>
                   </div>
               </div>

@@ -51,6 +51,7 @@ class TrackingOnView(View):
                                                   BorrowerTrackingLog=BorrowerTrackingLog)
 
     async def get(self, request, *args, **kwargs):
+        # Set parameters for tracking
         user = await sync_to_async(User.objects.get, thread_sensitive=True)(username=request.user)
         cctv_id, cctv_pw = user.cctv_id, user.cctv_pw
         cctv_ip = user.cctv_ip
@@ -59,17 +60,22 @@ class TrackingOnView(View):
         url = f'rtsp://{cctv_id}:{cctv_pw}@{cctv_ip}:{cctv_port}//h264Preview_01_{cctv_quality}'
 
         # Check IP camera activation
-        repeat_count, is_activate = 0, True
-        # cap = cv2.VideoCapture('sample_video_without_mask2.mp4')
-        while repeat_count < 3:
-            cap = cv2.VideoCapture(url)
-            if not cap.isOpened():
-                cv2.waitKey(1)
-                repeat_count += 1
-                print(f'Try load Video (#{repeat_count})')
-            else:
-                is_activate = True
-                break
+        repeat_count, is_activate = 0, False
+        # camera_type = 'video'
+        camera_type = 'cctv'
+        if camera_type == 'video':
+            cap = cv2.VideoCapture('sample_video_without_mask2.mp4') # for video
+            is_activate = True
+        else:
+            while repeat_count < 3:
+                cap = cv2.VideoCapture(url)
+                if not cap.isOpened():
+                    cv2.waitKey(1)
+                    repeat_count += 1
+                    print(f'Try load Video (#{repeat_count})')
+                else:
+                    is_activate = True
+                    break
 
         if is_activate:
             print('Tracking is activated!!')
@@ -88,9 +94,6 @@ class TrackingOnView(View):
             messages.add_message(request, messages.INFO, 'IP Camera is not activated.')
             return HttpResponseRedirect('/tracking')
 
-    def post(self, request, *args, **kwargs):
-        return HttpResponse('Tracking On.')
-    
     @classonlymethod
     def as_view(cls, **initkwargs):
         view = super().as_view(**initkwargs)
@@ -104,44 +107,5 @@ class TrackingOffView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = User.objects.get(username=self.request.user)
         user.tracking_status = False
-            
         user.save()
         return HttpResponseRedirect('/tracking')
-
-class TestView(View):
-    login_url = '/accounts/login/'
-    
-    async def get(self, request, *args, **kwargs):
-        user = await sync_to_async(User.objects.get, thread_sensitive=True)(username=self.request.user)
-        loop = asyncio.get_event_loop()
-        loop.create_task(self.test(user))
-        return HttpResponseRedirect('/tracking')
-    
-    async def test(self, user):
-        while True:
-            import os
-            print(os.getcwd())
-            img = cv2.imread('/home/borrower_tracker/tracking/person.jpg')
-            img = cv2.resize(img, (416, 416), interpolation=cv2.INTER_LINEAR)
-            device = torch.device("cuda")
-            img = torch.from_numpy(np.float32(img.copy()).transpose(2,0,1))
-            print(img.size())
-            img = img.to(device).half()
-            img /= 255.0
-            if img.ndimension() == 3:
-                img = img.unsqueeze(0)
-
-            person_detector = settings.TRACKING_MODELS.person_detector
-            pred = person_detector(img, augment=False)[0]
-            print(f'User: {user.uid}')
-            # print(f'Class Probability: {pred}')
-
-            from time import sleep
-            await asyncio.sleep(1)
-
-    @classonlymethod
-    def as_view(cls, **initkwargs):
-        view = super().as_view(**initkwargs)
-        view._is_coroutine = asyncio.coroutines._is_coroutine
-        return view
-

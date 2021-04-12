@@ -5,7 +5,9 @@ tracker/features/
 tracker/results/
 tracker/weights/
 static/log/
+
 db.sqlite3
 *.pyc
 *.csv
 *.mp4
+*.ipynb

@@ -25,10 +25,12 @@ class FaceFeatures(object):
             for file in files:
                 paths.append(file.replace("\\","/"))
         self.feats = np.zeros((len(paths),1024),dtype=np.float32)
+        self.uids = []
         self.names = []
         for i,path in enumerate(paths):
             loaded = load_feat(path)
             self.feats[i] = loaded
+            self.uids.append(int(path.split('/')[-3]))
             self.names.append(path.split('/')[-2])
             
 
@@ -517,36 +519,49 @@ def process(raw, detector, output_size):
         
     return det, np.array(warp_and_crops)
 
-def face_recognition_multi(img_raw,arc_model,face_detector,Faces,indivisual_threshold=False, bbox_xyxy=None):
-    """The difference with the face_recognition function is that it creates multiple patch images based on
-        person dection information before face detection is performed,
-        and face detection and recognition are calculated in batch form at once. 
-        To do this, face detection acquires only one box with the highest confidence in each image.
+def face_recognition_multi(img_raw, arc_model, face_detector, face_features,
+                           indivisual_threshold=False, bbox_xyxy=None):
+    """This function have two differences with the face_recognition function:
+       - It creates multiple patch images based on person dection information
+         before face detection is performed
+       - Face detection and recognition are calculated in batch form at once.
+
+       To do this, face detection acquires only one box with the highest confidence
+       in each image.
 
     Args:
         img_raw ([numpy array]) : Original image.
         arc_model ([ResNetFace class object]): Arc Face model class object.
         face_detector ([RetinafaceDetector class]): Face Detector.
-        Faces ([FaceFeatures class]): FaceFeatures class object. Takes as input to update the current state.
-        draw_img (bool, optional): In the case of ture, the result is drawn with the image. Defaults to False.
-        indivisual_threshold (bool, optional): Currently not used. It may be deleted in the future or the function may be changed. Defaults to False.
-        bbox_xyxy ([numpy array], optional): Bounding box of Person detection. xyxy format. Defaults to None.
+        face_features ([numpy array]): face features for specific user
+        draw_img (bool, optional): In the case of ture, the result is drawn with the image.
+                                   Defaults to False.
+        indivisual_threshold (bool, optional): Currently not used.
+                                               It may be deleted in the future
+                                               or the function may be changed.
+                                               Defaults to False.
+        bbox_xyxy ([numpy array], optional): Bounding box of Person detection.
+                                             xyxy format.
+                                             Defaults to None.
 
     Returns:
         [numpy array]: Box information of face detection,
-                                Confidence score of face detection,
-                                Similarity for all features you currently have,
-                                Feature array about patch(face image).
-                                Face patch images from which features were extracted.
+                       Confidence score of face detection,
+                       Similarity for all features you currently have,
+                       Feature array about patch(face image).
+                       Face patch images from which features were extracted.
     """
-    boxes, det_scores, sim_scores, features,patches = [],[],[],[],[]
+    # Detect faces as patches
+    boxes, det_scores, sim_scores, features,patches = [], [], [], [], []
     img = img_raw.copy()
     if bbox_xyxy is None:
-        det,patch = process(img,face_detector, output_size=(112, 112))
+        det, patch = process(img, face_detector, output_size=(112, 112))
     else:
-        det,patch = multi_batch_process(img,face_detector,output_size=(112,112),bbox_xyxy=bbox_xyxy)
+        det, patch = multi_batch_process(img, face_detector,
+                                         output_size=(112,112), bbox_xyxy=bbox_xyxy)
         
-    sims, idxs, feats = distinct_multi_face(arc_model,Faces.feats,patch)
+    # Recognize faces from detected faces
+    sims, idxs, feats = distinct_multi_face(arc_model, face_features, patch)
     for i,b in enumerate(det):
         if len(b):
             detect_score = b[4]
@@ -557,8 +572,8 @@ def face_recognition_multi(img_raw,arc_model,face_detector,Faces,indivisual_thre
             patches.append(patch[i])
         else:
             det_scores.append(0)
-            sim_scores.append(np.zeros((Faces.feats.shape[0]),np.float32))
-            features.append(np.zeros((1024),np.float32))
+            sim_scores.append(np.zeros((face_features.shape[0]), np.float32))
+            features.append(np.zeros((1024), np.float32))
             patches.append(patch[i])
     return boxes, det_scores, sim_scores, features, patches, idxs
 
