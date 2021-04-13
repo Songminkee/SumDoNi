@@ -23,6 +23,7 @@ import torch
 import torch.backends.cudnn as cudnn
 import asyncio
 import gc
+import skvideo.io
 
 
 class TrackingModels:
@@ -101,6 +102,12 @@ class TrackingModels:
         '''
         t_logs = []
         for tracked_id, t_info in tracked_ids.items():
+            # Remove Unknown and ???
+            if t_info.name == 'Unknown' or t_info.name == '???':
+                if vq_tidxes.get(tracked_id):
+                    del vq_tidxes[tracked_id]
+                continue
+
             borrower = await sync_to_async(Borrower.objects.get,
                                             thread_sensitive=True)(b_name=t_info.name)
             
@@ -143,24 +150,24 @@ class TrackingModels:
                 os.makedirs(out_dir)
 
             # Save a video path
-            t_log.video_path = out_dir
+            file_path = f'{out_dir}/{t_log.start_datetime}-{t_log.end_datetime}.mp4'
+            t_log.video_path = file_path.replace('static/', '')
             await sync_to_async(t_log.save, thread_sensitive=True)()
 
             # Create a VideoWriter to save Video
             fps = 30
-            # cv2.VideoWriter_fourcc('D', 'I', 'V', 'X')
             fcc = cv2.VideoWriter_fourcc(*'FMP4')
-            fname = f'{t_log.start_datetime}-{t_log.end_datetime}'
-            out = cv2.VideoWriter(f'{out_dir}/{fname}.mp4', fcc, fps,
-                                  (write_size, write_size))
+            out = skvideo.io.FFmpegWriter(file_path, outputdict={'-vcodec': 'libx264'})
 
             # Save frames
             for frame in list(vqueue):
-                out.write(cv2.resize(frame, (resize, resize),
-                          interpolation=cv2.INTER_LINEAR))
+                frame = cv2.cvtColor(cv2.resize(frame, (write_size, write_size),
+                                                interpolation=cv2.INTER_LINEAR),
+                                     cv2.COLOR_BGR2RGB)
+                out.writeFrame(frame)
 
             # Release VideoWriter
-            out.release()
+            out.close()
             out = None
 
             # Update vqueue
@@ -272,11 +279,18 @@ class TrackingModels:
 
                     # Recognize faces and update tracking information
                     if len(bbox_xyxy):
+                        # Extract borrower features of this user
+                        face_features = []
+                        for uid, feature in zip(self.Faces.uids, self.Faces.feats):
+                            if user.uid == uid:
+                                face_features.append(feature)
+                        face_features = np.asarray(face_features)
+
                         # Recognize Faces
                         t6 = time.time()
                         face_boxes, face_det_scores, sim_scores, features, patches, idxs = \
                             face_recognition_multi(img_raw, self.arc_model,
-                                                   self.face_detector, self.Faces,
+                                                   self.face_detector, face_features,
                                                    indivisual_threshold=indivisual_threshold,
                                                    bbox_xyxy=bbox_xyxy)
                         print(f"face detect,recog time = {time.time()-t6}")

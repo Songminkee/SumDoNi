@@ -5,7 +5,9 @@ class Config(object):
     # arcface cfg
     use_se = False
     arc_model_path = './tracker/weights/arcface_resnet18_110.pth'
+    # arc_model_path = './tracker/weights/arcface_resnet18_40_ft.pth'
     sim_threshold = 0.4
+    # sim_threshold = 0.5
 
     # Retinaface cfg
     cfg_mnet = {
@@ -27,6 +29,7 @@ class Config(object):
     'in_channel': 32,
     'out_channel': 64,
     'weight_path': './tracker/weights/retina_face_mobilenet0.25_Final.pth'
+    # 'weight_path': './tracker/weights/retina_face_mobilenet0.25_Final_ft_e500.pth'
     }    
     confidence_threshold = 0.6
     nms_threshold = 0.4
