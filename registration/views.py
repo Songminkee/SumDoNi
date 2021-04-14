@@ -20,9 +20,16 @@ class RegistrationView(LoginRequiredMixin, TemplateView):
     template_name = 'registration/registration.html'
 
     def get_context_data(self, **kwargs):
+        video_path = '1.mp4'
+
         context = super().get_context_data(**kwargs)
         context['form'] = UploadMultiImageForm
-        context['video_path'] = '1.mp4'
+        context['video_path'] = video_path
+
+        cap = cv2.VideoCapture('./static/' + video_path)
+        fps = cap.get(cv2.CAP_PROP_FPS)
+
+        context['fps'] = fps
         return context
 
 
