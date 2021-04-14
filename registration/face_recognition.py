@@ -1,6 +1,7 @@
 import torch.backends.cudnn as cudnn
 
 from PIL import Image
+from borrower_tracker.settings import TRACKING_MODELS
 from tracker.config import Config
 from tracker.arcface.models import resnet_face18
 from tracker.retinaface.detector import RetinafaceDetector
@@ -8,7 +9,7 @@ from tracker.utils.face_util import *
 
 opt = Config()
 opt.is_resize = True
-opt.resize = 256
+opt.resize = 416
 opt.indivisual_threshold = False
 
 
@@ -38,9 +39,28 @@ def face_recognition(img_raw):
 
     # Image
     img_raw = np.asarray(img_raw)
+
+    height, width = img_raw.shape[:2]
+    ratio = width / height
+    if width >= height:
+        is_width_larger = True
+    else:
+        is_width_larger = False
+    if is_width_larger:
+        # ratio > 1
+        new_height = opt.resize
+        new_width = int(ratio * new_height)
+    else:
+        # ratio < 1
+        new_width = opt.resize
+        new_height = int(new_width / ratio)
+
     if opt.is_resize:
-        img_raw = cv2.resize(img_raw, (opt.resize, opt.resize), interpolation=cv2.INTER_LINEAR)
+        img_raw = cv2.resize(img_raw, (new_width, new_height), interpolation=cv2.INTER_LINEAR)
     img = img_raw.copy()
+    # view image resized
+    # cv2.imshow('fawef',img)
+    # cv2.waitKey(0)
     det, patch = process(img, detector, output_size=(112, 112))
 
     print(det.shape, patch.shape)
@@ -49,7 +69,6 @@ def face_recognition(img_raw):
 
 
 def save_features(img, name, uid):
-    Faces = FaceFeatures(opt.features_path)
     origin_features_path = opt.features_path
     opt.features_path = opt.features_path + '/' + str(uid)
 
@@ -64,7 +83,7 @@ def save_features(img, name, uid):
     arc_model = set_model.get_arc_model()
     p = cv2.cvtColor(cv2.resize(img, (128, 128)), cv2.COLOR_BGR2RGB)
     feat = get_face_feature(arc_model, cv2.cvtColor(p, cv2.COLOR_BGR2GRAY), preprocess=True)
-    save_feat(opt, name, feat, Faces)
+    save_feat(opt, name, feat, TRACKING_MODELS.Faces)
 
     opt.features_path = origin_features_path
 

@@ -7,14 +7,17 @@
 <h1> Face Selection Page </h1>
 <br>
 
-<form method="POST" action="save_face" enctype="multipart/form-data">
+<form method="POST" action="save_face" enctype="multipart/form-data" onsubmit="alert('저장되었습니다');">
     {% csrf_token %}
+    <div style="font: bold 2.0em/1.0em 휴먼편지체">Original Image</div><br>
+    <img src="data:image/png;base64,{{ img_origin }}"><br>
+    <div style="font: bold 2.0em/1.0em 휴먼편지체">Detected Image</div><br>
     {% for i, img_str in zip_range %}
-    Borrower name {{ i }} : <input type="text" name='b_name'><br><br>
-    <input type="checkbox" name="images" value="{{ i }}">
-    <input type="hidden" name="hidden_image" value="{{ img_str }}">
-    <img src="data:image/png;base64,{{ img_str }}"><br>
-    <br>
+        Borrower name {{ i }} : <input type="text" name='b_name'><br><br>
+        <input type="checkbox" name="images" value="{{ i }}">
+        <input type="hidden" name="hidden_image" value="{{ img_str }}">
+        <img src="data:image/png;base64,{{ img_str }}"><br>
+        <br>
     {% endfor %}
     <input type="submit" value="Submit"><br>
     {{ form.as_p }}
