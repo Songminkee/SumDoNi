@@ -6,15 +6,27 @@
 {% block content %}
 Registration Page
 <div>
-    <video id="video-active" class="video-active" width="530" height="440" controls autoplay>
-        <source src={% static video_path %} type="video/mp4"> </source>
+    <video id="video-active" class="video-active" controls autoplay>
+        <source src={% static video_path %} type="video/mp4"></source>
     </video>
 </div>
-<span id="current">0:00</span>
-<span id="duration">0:00</span><br>
+
+<div class="time">
+    Time # :
+    <span id="currentTime">0:00</span> / <span id="duration">0:00</span><br>
+</div>
+<div class="frame">
+    Frame # :
+    <span id="currentFrame">0</span> / <span id="durationFrame">0</span>
+</div>
+<input type="hidden" id="fps" value="{{ fps }}">
+<input type="button" value="이미지 저장" onclick="getFrameFromVideo()">
+
 <form method="POST" action="face_recognition" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ form.as_p }}
+<!--    {{ form.as_p }}-->
+    Current Frame # : <input type="text" id="frame" value=""><br>
+    <input type="hidden" id="img" name="img" value="">
     <input type="submit" value="Submit">
 </form>
 {% endblock %}

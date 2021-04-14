@@ -15,14 +15,28 @@ import cv2
 import numpy as np
 
 
+def get_str_to_img(b64_str):
+    imgdata = base64.b64decode(b64_str)
+    image = Image.open(BytesIO(imgdata))
+
+    return np.array(image)
+
+
 class RegistrationView(LoginRequiredMixin, TemplateView):
     login_url = '/accounts/login/'
     template_name = 'registration/registration.html'
 
     def get_context_data(self, **kwargs):
+        video_path = '1.mp4'
+
         context = super().get_context_data(**kwargs)
         context['form'] = UploadMultiImageForm
-        context['video_path'] = '1.mp4'
+        context['video_path'] = video_path
+
+        cap = cv2.VideoCapture('./static/' + video_path)
+        fps = cap.get(cv2.CAP_PROP_FPS)
+
+        context['fps'] = fps
         return context
 
 
@@ -41,12 +55,10 @@ class FaceRecognitionView(LoginRequiredMixin, TemplateView):
 
         form = UploadMultiImageForm(request.POST, request.FILES)
         if form.is_valid():
-            from PIL import Image
             img_raw = form.cleaned_data['img']
-            print(img_raw)
+            print(np.array(img_raw).shape)
             # for img_raw in form.cleaned_data['img']:
-            img = Image.open(img_raw)
-            print(img.size)
+            img = Image.open(img_raw).convert('RGB')
 
             # reshape
             will_reshape = False
@@ -56,19 +68,29 @@ class FaceRecognitionView(LoginRequiredMixin, TemplateView):
                 new_w = int(ratio * 480)
                 new_h = 480
                 img = img.resize((new_w, new_h))
+        else:
+            img_str = request.POST['img'].split(',')[-1]
+            img_raw = get_str_to_img(img_str)
+            print(img_raw.shape)
+            img = Image.fromarray(img_raw).convert('RGB')
 
-            imgs = face_recognition(img)
-            img_strs = list()
-            for img in imgs:
-                img_str = get_img_for_template(Image.fromarray(img))
-                img_strs.append(img_str)
+        print(img.size)
 
-            context = self.get_context_data(**kwargs)
-            context['range'] = range(len(img_strs))
-            context['img_strs'] = img_strs
-            context['zip_range'] = zip(range(len(img_strs)), img_strs)
+        img_origin = get_img_for_template(img)
+        img_strs = list()
 
-            return self.render_to_response(context)
+        imgs = face_recognition(img)
+        for img in imgs:
+            img_str = get_img_for_template(Image.fromarray(img))
+            img_strs.append(img_str)
+
+        context = self.get_context_data(**kwargs)
+        context['range'] = range(len(img_strs))
+        context['img_origin'] = img_origin
+        context['img_strs'] = img_strs
+        context['zip_range'] = zip(range(len(img_strs)), img_strs)
+
+        return self.render_to_response(context)
 
 
 class FaceSaveView(LoginRequiredMixin, TemplateView):
@@ -76,13 +98,6 @@ class FaceSaveView(LoginRequiredMixin, TemplateView):
     template_name = 'registration/save_face.html'
 
     def post(self, request, *args, **kwargs):
-
-        def get_str_to_img(b64_str):
-            imgdata = base64.b64decode(b64_str)
-            image = Image.open(BytesIO(imgdata))
-
-            return np.array(image)
-
         # print(request.POST, request.FILES)
         data = request.POST
         print(data.keys())
@@ -107,4 +122,4 @@ class FaceSaveView(LoginRequiredMixin, TemplateView):
             img = Image.fromarray(images[i])
             img.show()
 
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect('/history')
