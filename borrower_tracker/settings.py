@@ -129,6 +129,10 @@ STATICFILES_DIRS =[
 ]
 STATIC_ROOT = os.path.join(BASE_DIR,'static')
 
+# Set max memory size
+# https://docs.djangoproject.com/en/dev/ref/settings/#data-upload-max-memory-size
+DATA_UPLOAD_MAX_MEMORY_SIZE = 7864320 # Default: 2621440 (i.e. 2.5 MB).
+
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
 
