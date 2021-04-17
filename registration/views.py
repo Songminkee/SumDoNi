@@ -111,14 +111,7 @@ class FaceSaveView(LoginRequiredMixin, TemplateView):
             b_names[i] = b_names[i].lstrip().rstrip()
             save_features(images[i], b_names[i], request.user.uid)
 
-            all_borrower_list = Borrower.objects.all()
-            is_in_db = False
-            for query in all_borrower_list:
-                if query.b_name == b_names[i]:
-                    is_in_db = True
-                    break
-
-            if not is_in_db:
+            if not Borrower.objects.filter(b_name=b_names[i]).exists():
                 borrower = Borrower(b_name=b_names[i])
                 user = User.objects.get(uid=request.user.uid)
                 print(user.uid)
