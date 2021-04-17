@@ -47,6 +47,6 @@ class Config(object):
     deepsort_cfg.merge_from_file(deepsort_config_path)
 
     # cfg
-    features_path = os.path.join(settings.STATIC_ROOT,'log')
+    features_path = os.path.join(settings.STATIC_ROOT,'registration')
 
     
