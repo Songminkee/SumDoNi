@@ -35,7 +35,7 @@ set_model = ModelClass()
 
 
 def face_recognition(img_raw):
-    detector = set_model.get_detector()
+    detector = TRACKING_MODELS.face_detector
 
     # Image
     img_raw = np.asarray(img_raw)
@@ -80,7 +80,7 @@ def save_features(img, name, uid):
         img_ = Image.fromarray(img)
         img_.save(dst_path, "JPEG")
 
-    arc_model = set_model.get_arc_model()
+    arc_model = TRACKING_MODELS.arc_model
     p = cv2.cvtColor(cv2.resize(img, (128, 128)), cv2.COLOR_BGR2RGB)
     feat = get_face_feature(arc_model, cv2.cvtColor(p, cv2.COLOR_BGR2GRAY), preprocess=True)
     save_feat(opt, name, feat, TRACKING_MODELS.Faces)

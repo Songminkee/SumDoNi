@@ -111,13 +111,14 @@ class FaceSaveView(LoginRequiredMixin, TemplateView):
             b_names[i] = b_names[i].lstrip().rstrip()
             save_features(images[i], b_names[i], request.user.uid)
 
-            borrower = Borrower(b_name=b_names[i])
-            user = User.objects.get(uid=request.user.uid)
-            print(user.uid)
-            print(type(user))
-            userborrower = UserBorrower(uid=user, bid=borrower)
-            borrower.save()
-            userborrower.save()
+            if not Borrower.objects.filter(b_name=b_names[i]).exists():
+                borrower = Borrower(b_name=b_names[i])
+                user = User.objects.get(uid=request.user.uid)
+                print(user.uid)
+                print(type(user))
+                userborrower = UserBorrower(uid=user, bid=borrower)
+                borrower.save()
+                userborrower.save()
 
             img = Image.fromarray(images[i])
             img.show()

@@ -1,5 +1,6 @@
 from ..utils.parser import get_config
-
+import os
+from django.conf import settings
 
 class Config(object):
     # arcface cfg
@@ -46,6 +47,6 @@ class Config(object):
     deepsort_cfg.merge_from_file(deepsort_config_path)
 
     # cfg
-    features_path = './tracker/features'
+    features_path = os.path.join(settings.STATIC_ROOT,'log')
 
     
