@@ -24,7 +24,7 @@ SECRET_KEY = 'd!0t0(k1lwx)+js8apq$_vzv#=+wyhk%&qlw_5qzt0m^7bk^y('
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '210.223.56.208']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '210.223.56.208', 'creditback.wooks.page']
 
 # Application definition
 
@@ -139,3 +139,6 @@ LOGOUT_REDIRECT_URL = 'home'
 # Load models
 from .tracking_utils import TrackingModels
 TRACKING_MODELS = TrackingModels()
+
+# https://docs.djangoproject.com/en/3.2/topics/async/#async-safety
+os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
