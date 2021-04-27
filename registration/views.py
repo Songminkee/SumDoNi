@@ -22,6 +22,14 @@ def get_str_to_img(b64_str):
     return np.array(image)
 
 
+def get_img_to_str(img):
+    buffer = BytesIO()
+    img.save(buffer, format='PNG')
+    img_str = base64.b64encode(buffer.getvalue()).decode('ascii')
+
+    return img_str
+
+
 class RegistrationView(LoginRequiredMixin, TemplateView):
     login_url = '/accounts/login/'
     template_name = 'registration/registration.html'
@@ -37,13 +45,6 @@ class FaceRecognitionView(LoginRequiredMixin, TemplateView):
     template_name = 'registration/face_selection.html'
 
     def post(self, request, *args, **kwargs):
-
-        def get_img_for_template(img):
-            buffer = BytesIO()
-            img.save(buffer, format='PNG')
-            img_str = base64.b64encode(buffer.getvalue()).decode('ascii')
-
-            return img_str
 
         form = UploadMultiImageForm(request.POST, request.FILES)
         if form.is_valid():
@@ -68,18 +69,16 @@ class FaceRecognitionView(LoginRequiredMixin, TemplateView):
 
         print(img.size)
 
-        img_origin = get_img_for_template(img)
+        img_origin = get_img_to_str(img)
         img_strs = list()
 
         imgs = face_recognition(img)
         for img in imgs:
-            img_str = get_img_for_template(Image.fromarray(img))
+            img_str = get_img_to_str(Image.fromarray(img))
             img_strs.append(img_str)
 
         context = self.get_context_data(**kwargs)
-        context['range'] = range(len(img_strs))
         context['img_origin'] = img_origin
-        context['img_strs'] = img_strs
         context['zip_range'] = zip(range(len(img_strs)), img_strs)
 
         return self.render_to_response(context)
