@@ -1,7 +1,8 @@
 $(document).ready(function(){
-    imageTempl = document.getElementById("image-template"),
-    videoTempl = document.getElementById("video-template"),
+    imageTempl = document.getElementById("image-template");
+    videoTempl = document.getElementById("video-template");
     empty = document.getElementById("empty");
+    file_button = document.getElementById("button")
 
     // use to store pre selected files
     let FILES = {};
@@ -33,14 +34,8 @@ $(document).ready(function(){
         target.prepend(clone);
 
         FILES[objectURL] = file;
-        
-        fps = document.getElementById("fps").value
-        $("#video-active").on(
-            "timeupdate",
-            function(event){
-                onTrackedVideoTime(this.currentTime, this.duration);
-                onTrackedVideoFrame(parseInt((this.currentTime * parseFloat(fps)).toString()), this.duration * parseFloat(fps));
-        });
+
+        file_button.remove()
     }
 
     const gallery = document.getElementById("gallery"),
@@ -56,24 +51,7 @@ $(document).ready(function(){
         }
     };
 
-    fps = document.getElementById("fps").value
-    $("#video-active").on(
-    "timeupdate",
-    function(event){
-      onTrackedVideoTime(this.currentTime, this.duration);
-      onTrackedVideoFrame(parseInt((this.currentTime * parseFloat(fps)).toString()), this.duration * parseFloat(fps));
-    });
 });
-
-function onTrackedVideoTime(currentTime, duration){
-    $("#currentTime").text(currentTime); //Change #current to currentTime
-    $("#duration").text(duration)
-}
-
-function onTrackedVideoFrame(currentFrame, duration){
-    $("#currentFrame").text(currentFrame); //Change #current to currentTime
-    $("#durationFrame").text(duration)
-}
 
 function getFrameFromVideo(){
     video = document.getElementById("video-active");
@@ -86,7 +64,8 @@ function getFrameFromVideo(){
     const dataURL = canvas.toDataURL();
 
     document.getElementById("img").value = dataURL;
-    document.getElementById("frame").value = document.getElementById("currentFrame").innerText
+
+    alert("현재 사진을 저장합니다.")
 }
 
 window.addEventListener('keypress', function (evt) {
