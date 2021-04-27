@@ -19,4 +19,5 @@ def main():
 
 
 if __name__ == '__main__':
+    os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
     main()
