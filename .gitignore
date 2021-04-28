@@ -5,6 +5,8 @@ tracker/features/
 tracker/results/
 tracker/weights/
 static/log/
+static/registration/**/*.npy
+static/registration/**/*.jpg
 
 db.sqlite3
 *.pyc

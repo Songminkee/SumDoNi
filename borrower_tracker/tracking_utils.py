@@ -83,13 +83,14 @@ class TrackingModels:
         return None
 
     async def save_tracked_videos(self, tracked_ids, user, Borrower,
-                                  TrackingLog, BorrowerTrackingLog,
+                                  UserBorrower, TrackingLog, BorrowerTrackingLog,
                                   resize, write_size, vqueue, vq_tidxes):
         '''Save tracking information into Database.
         
         Args:
             tracked_ids (dict): tracked ids
             Borrower (obj): Borrower model
+            UserBorrower (obj): UserBorrower model
             TrackingLog (obj): TrackingLog model
             BorrowerTrackingLog (obj): BorrowerTrackingLog model
             resize (int): size of a resize for an image
@@ -108,8 +109,16 @@ class TrackingModels:
                     del vq_tidxes[tracked_id]
                 continue
 
-            borrower = await sync_to_async(Borrower.objects.get,
-                                            thread_sensitive=True)(b_name=t_info.name)
+            # Find a borrower
+            # https://docs.djangoproject.com/en/3.2/topics/async/#async-safety
+            user_borrowers = await sync_to_async(UserBorrower.objects.filter,
+                                                 thread_sensitive=True)(uid=user)
+            for user_borrower in user_borrowers:
+                borrower = await sync_to_async(Borrower.objects.get,
+                                               thread_sensitive=True)(bid=user_borrower.bid.bid,
+                                                                      b_name=t_info.name)
+                if borrower:
+                    break
             
             # Merge duplicates
             prev_tlog = await self.find_tlog(t_logs, t_info.name)
@@ -185,7 +194,7 @@ class TrackingModels:
     async def track_face(self, cap, User=None, username='', is_write=True,
                          result_name='test', write_size=416, is_resize=True,
                          resize=416, indivisual_threshold=False, Borrower=None,
-                         TrackingLog=None, BorrowerTrackingLog=None):
+                         UserBorrower=None, TrackingLog=None, BorrowerTrackingLog=None):
         ''' Track faces.
         
             Args:
@@ -211,12 +220,12 @@ class TrackingModels:
 
                 # Save tracked info for tracked ids
                 await self.save_tracked_videos(tracked.track_id, user, Borrower,
-                                               TrackingLog, BorrowerTrackingLog,
+                                               UserBorrower, TrackingLog, BorrowerTrackingLog,
                                                resize, write_size, vqueue, vq_tidxes)
                 
                 # Save tracked info for old ids
                 await self.save_tracked_videos(tracked.old_id, user, Borrower,
-                                               TrackingLog, BorrowerTrackingLog,
+                                               UserBorrower, TrackingLog, BorrowerTrackingLog,
                                                resize, write_size, vqueue, vq_tidxes)
 
             # Extract a frame from CCTV
@@ -320,7 +329,7 @@ class TrackingModels:
             if removed_old_ids:
                 print('Removed old tracked ids!!')
                 self.save_tracked_videos(removed_old_ids, user, Borrower,
-                                         TrackingLog, BorrowerTrackingLog,
+                                         UserBorrower, TrackingLog, BorrowerTrackingLog,
                                          resize, write_size, vqueue, vq_tidxes)
                 del removed_old_ids
                 gc.collect()
@@ -358,5 +367,5 @@ class TrackingModels:
 
         # This is for video cctv.
         await self.save_tracked_videos(tracked.old_id, user, Borrower,
-                                       TrackingLog, BorrowerTrackingLog,
+                                       UserBorrower, TrackingLog, BorrowerTrackingLog,
                                        resize, write_size, vqueue, vq_tidxes)
