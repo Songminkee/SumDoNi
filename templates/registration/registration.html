@@ -1,8 +1,8 @@
 <!-- templates/registration/registration.html -->
 {% extends 'base.html' %}
-{% load static %}
 
 {% block title %}외상자 등록{% endblock %}
+
 {% block content %}
 <div class="bg-gray-500 h-screen w-screen sm:px-8 md:px-16 sm:py-8">
     <main class="container mx-auto max-w-screen-lg h-full">
@@ -20,19 +20,14 @@
 
         <!-- scroll area -->
         <section class="h-full overflow-auto p-8 w-full h-full flex flex-col">
-          <header class="border-dashed border-2 border-gray-400 py-12 flex flex-col justify-center items-center">
-            <p class="mb-3 font-semibold text-gray-900 flex flex-wrap justify-center">
-              <span>Drag and drop your</span>&nbsp;<span>files anywhere or</span>
-            </p>
             <input id="hidden-input" type="file" multiple class="hidden" />
             <button id="button" class="mt-2 rounded-sm px-3 py-1 bg-gray-200 hover:bg-gray-300 focus:shadow-outline focus:outline-none">
               Upload a file
             </button>
-          </header>
 
-          <h1 class="pt-8 pb-3 font-semibold sm:text-lg text-gray-900">
+            <h1 class="pt-8 pb-3 font-semibold sm:text-lg text-gray-900">
             CCTV Video
-          </h1>
+            </h1>
 
           <ul id="gallery" class="flex flex-1 flex-wrap -m-1">
             <li id="empty" class="h-full w-full text-center flex flex-col items-center justify-center items-center">
@@ -44,12 +39,6 @@
 
         <!-- sticky footer -->
         <footer class="flex justify-end px-8 pb-8 pt-4">
-          <button id="submit" class="rounded-sm px-3 py-1 bg-blue-700 hover:bg-blue-500 text-white focus:shadow-outline focus:outline-none">
-            Upload now
-          </button>
-          <button id="cancel" class="ml-3 rounded-sm px-3 py-1 hover:bg-gray-300 focus:shadow-outline focus:outline-none">
-            Cancel
-          </button>
         </footer>
       </article>
     </main>
@@ -57,27 +46,29 @@
 
 <template id="video-template">
     <li class="block p-1 w-screen h-24">
-        <video id="video-active" class="video-active" controls autoplay>
-            <source type="video/mp4"></source>
-        </video>
-
-        <div class="time">
-            Time # :
-            <span id="currentTime">0:00</span> / <span id="duration">0:00</span><br>
-        </div>
-        <div class="frame">
-            Frame # :
-            <span id="currentFrame">0</span> / <span id="durationFrame">0</span>
-        </div>
-        <input type="hidden" id="fps" value="30">
-        <input type="button" value="이미지 저장" onclick="getFrameFromVideo()">
-
-        <form method="POST" action="face_recognition" enctype="multipart/form-data">
-            {% csrf_token %}
-            Current Frame # : <input type="text" id="frame" value=""><br>
-            <input type="hidden" id="img" name="img" value="">
-            <input type="submit" value="Submit">
-        </form>
+        <table class="rounded-t-lg m-5 w-5/6 mx-auto text-gray-800 time">
+            <tr class="border-b border-gray-200 frame">
+                <td colspan="2">
+                    <div class="content-center">
+                        <div class="inline-block">
+                            <video id="video-active" class="video-active" controls>
+                                <source type="video/mp4" style="width:50%"></source>
+                            </video>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr class="border-b border-gray-200 frame">
+                <td class="px-4 py-3">
+                <input type="button" value="이미지 저장" onclick="getFrameFromVideo()" class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded">
+                <form method="POST" action="face_recognition" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" id="img" name="img" value="">
+                    <input type="submit" value="얼굴 인식 시작" class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded">
+                </form>
+                </td>
+            </tr>
+        </table>
     </li>
 </template>
 

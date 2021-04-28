@@ -22,21 +22,21 @@ def get_str_to_img(b64_str):
     return np.array(image)
 
 
+def get_img_to_str(img):
+    buffer = BytesIO()
+    img.save(buffer, format='PNG')
+    img_str = base64.b64encode(buffer.getvalue()).decode('ascii')
+
+    return img_str
+
+
 class RegistrationView(LoginRequiredMixin, TemplateView):
     login_url = '/accounts/login/'
     template_name = 'registration/registration.html'
 
     def get_context_data(self, **kwargs):
-        video_path = '1.mp4'
-
         context = super().get_context_data(**kwargs)
-        context['form'] = UploadMultiImageForm
-        context['video_path'] = video_path
 
-        cap = cv2.VideoCapture('./static/' + video_path)
-        fps = cap.get(cv2.CAP_PROP_FPS)
-
-        context['fps'] = fps
         return context
 
 
@@ -45,13 +45,6 @@ class FaceRecognitionView(LoginRequiredMixin, TemplateView):
     template_name = 'registration/face_selection.html'
 
     def post(self, request, *args, **kwargs):
-
-        def get_img_for_template(img):
-            buffer = BytesIO()
-            img.save(buffer, format='PNG')
-            img_str = base64.b64encode(buffer.getvalue()).decode('ascii')
-
-            return img_str
 
         form = UploadMultiImageForm(request.POST, request.FILES)
         if form.is_valid():
@@ -76,18 +69,16 @@ class FaceRecognitionView(LoginRequiredMixin, TemplateView):
 
         print(img.size)
 
-        img_origin = get_img_for_template(img)
+        img_origin = get_img_to_str(img)
         img_strs = list()
 
         imgs = face_recognition(img)
         for img in imgs:
-            img_str = get_img_for_template(Image.fromarray(img))
+            img_str = get_img_to_str(Image.fromarray(img))
             img_strs.append(img_str)
 
         context = self.get_context_data(**kwargs)
-        context['range'] = range(len(img_strs))
         context['img_origin'] = img_origin
-        context['img_strs'] = img_strs
         context['zip_range'] = zip(range(len(img_strs)), img_strs)
 
         return self.render_to_response(context)
@@ -104,14 +95,19 @@ class FaceSaveView(LoginRequiredMixin, TemplateView):
         b_names = request.POST.getlist('b_name')
         checklist = request.POST.getlist('images')
         images = request.POST.getlist('hidden_image')
+        origin_img = request.POST['origin_img']
 
         checklist = list(map(int, checklist))
         images = list(map(get_str_to_img, images))
+        saved_images = list()
+        saved_names = list()
+        saved_size = list()
         for i in checklist:
             b_names[i] = b_names[i].lstrip().rstrip()
             save_features(images[i], b_names[i], request.user.uid)
 
-            if not Borrower.objects.filter(b_name=b_names[i]).exists():
+            # if not Borrower.objects.filter(b_name=b_names[i]).exists():
+            if not Borrower.objects.filter(userborrower__uid=request.user.uid, b_name=b_names[i]).exists():
                 borrower = Borrower(b_name=b_names[i])
                 user = User.objects.get(uid=request.user.uid)
                 print(user.uid)
@@ -120,7 +116,13 @@ class FaceSaveView(LoginRequiredMixin, TemplateView):
                 borrower.save()
                 userborrower.save()
 
-            img = Image.fromarray(images[i])
-            img.show()
+            saved_images.append(get_img_to_str(Image.fromarray(images[i])))
+            saved_names.append(b_names[i])
+            saved_size.append(images[i].shape)
+            print(images[i].shape)
 
-        return HttpResponseRedirect('/history')
+        context = self.get_context_data(**kwargs)
+        context['img_origin'] = origin_img
+        context['zip_range'] = zip(range(len(saved_images)), saved_images, saved_names, saved_size)
+
+        return self.render_to_response(context)
