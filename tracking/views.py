@@ -14,7 +14,7 @@ from django.utils.decorators import classonlymethod
 from asgiref.sync import sync_to_async
 
 from accounts.models import User
-from registration.models import Borrower
+from registration.models import Borrower, UserBorrower
 from history.models import TrackingLog, BorrowerTrackingLog
 
 import subprocess
@@ -47,6 +47,7 @@ class TrackingOnView(View):
     async def tracking(self, cap, username):
         await settings.TRACKING_MODELS.track_face(cap=cap, User=User, username=username,
                                                   Borrower=Borrower,
+                                                  UserBorrower=UserBorrower,
                                                   TrackingLog=TrackingLog,
                                                   BorrowerTrackingLog=BorrowerTrackingLog)
 
@@ -64,7 +65,14 @@ class TrackingOnView(View):
         # camera_type = 'video'
         camera_type = 'cctv'
         if camera_type == 'video':
-            cap = cv2.VideoCapture('sample_video_without_mask2.mp4') # for video
+            cap = cv2.VideoCapture('hanamart-112128-112658_mask-o_glasses-x_cap-x.mp4')
+            # cap = cv2.VideoCapture('hanamart-112128-112658_mask-o_glasses-o_cap-x.mp4')
+            # cap = cv2.VideoCapture('hanamart-112128-112658_mask-o_glasses-x_cap-o.mp4')
+            # cap = cv2.VideoCapture('hanamart-112128-112658_mask-o_glasses-o_cap-o.mp4')
+            # cap = cv2.VideoCapture('hanamart-112128-112658_mask-x_glasses-x_cap-x.mp4')
+            # cap = cv2.VideoCapture('hanamart-112128-112658_mask-x_glasses-o_cap-x.mp4')
+            # cap = cv2.VideoCapture('hanamart-112128-112658_mask-x_glasses-x_cap-o.mp4')
+            # cap = cv2.VideoCapture('hanamart-112128-112658_mask-x_glasses-o_cap-o.mp4')
             is_activate = True
         else:
             while repeat_count < 3:
