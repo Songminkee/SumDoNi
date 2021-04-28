@@ -1,0 +1,81 @@
+<!-- templates/registration/registration.html -->
+{% extends 'base.html' %}
+
+{% block title %}외상자 등록{% endblock %}
+
+{% block content %}
+<div class="bg-gray-500 h-screen w-screen sm:px-8 md:px-16 sm:py-8">
+    <main class="container mx-auto max-w-screen-lg h-full">
+      <!-- file upload modal -->
+      <article aria-label="File Upload Modal" class="relative h-full flex flex-col bg-white shadow-xl rounded-md" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);" ondragleave="dragLeaveHandler(event);" ondragenter="dragEnterHandler(event);">
+        <!-- overlay -->
+        <div id="overlay" class="w-full h-full absolute top-0 left-0 pointer-events-none z-50 flex flex-col items-center justify-center rounded-md">
+          <i>
+            <svg class="fill-current w-12 h-12 mb-3 text-blue-700" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+              <path d="M19.479 10.092c-.212-3.951-3.473-7.092-7.479-7.092-4.005 0-7.267 3.141-7.479 7.092-2.57.463-4.521 2.706-4.521 5.408 0 3.037 2.463 5.5 5.5 5.5h13c3.037 0 5.5-2.463 5.5-5.5 0-2.702-1.951-4.945-4.521-5.408zm-7.479-1.092l4 4h-3v4h-2v-4h-3l4-4z" />
+            </svg>
+          </i>
+          <p class="text-lg text-blue-700">Drop files to upload</p>
+        </div>
+
+        <!-- scroll area -->
+        <section class="h-full overflow-auto p-8 w-full h-full flex flex-col">
+            <input id="hidden-input" type="file" multiple class="hidden" />
+            <button id="button" class="mt-2 rounded-sm px-3 py-1 bg-gray-200 hover:bg-gray-300 focus:shadow-outline focus:outline-none">
+              Upload a file
+            </button>
+
+            <h1 class="pt-8 pb-3 font-semibold sm:text-lg text-gray-900">
+            CCTV Video
+            </h1>
+
+          <ul id="gallery" class="flex flex-1 flex-wrap -m-1">
+            <li id="empty" class="h-full w-full text-center flex flex-col items-center justify-center items-center">
+              <img class="mx-auto w-32" src="https://user-images.githubusercontent.com/507615/54591670-ac0a0180-4a65-11e9-846c-e55ffce0fe7b.png" alt="no data" />
+              <span class="text-small text-gray-500">No files selected</span>
+            </li>
+          </ul>
+        </section>
+
+        <!-- sticky footer -->
+        <footer class="flex justify-end px-8 pb-8 pt-4">
+        </footer>
+      </article>
+    </main>
+</div>
+
+<template id="video-template">
+    <li class="block p-1 w-screen h-24">
+        <table class="rounded-t-lg m-5 w-5/6 mx-auto text-gray-800 time">
+            <tr class="border-b border-gray-200 frame">
+                <td colspan="2">
+                    <div class="content-center">
+                        <div class="inline-block">
+                            <video id="video-active" class="video-active" controls>
+                                <source type="video/mp4" style="width:50%"></source>
+                            </video>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr class="border-b border-gray-200 frame">
+                <td class="px-4 py-3">
+                <input type="button" value="이미지 저장" onclick="getFrameFromVideo()" class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded">
+                <form method="POST" action="face_recognition" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" id="img" name="img" value="">
+                    <input type="submit" value="얼굴 인식 시작" class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded">
+                </form>
+                </td>
+            </tr>
+        </table>
+    </li>
+</template>
+
+<style>
+#overlay p,
+i {
+  opacity: 0;
+}
+</style>
+{% endblock %}

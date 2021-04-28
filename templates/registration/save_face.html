@@ -1,0 +1,27 @@
+<!-- templates/registration/save_face.html -->
+{% extends 'base.html' %}
+
+{% block title %}{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div>
+    <span style="font: bold 2.5em/1.0em '맑은 고딕'">등록한 외상자 정보</span><br><br>
+</div>
+<div class="grid grid-cols-2 gap-4">
+    <div class="align-middle">
+        <span style="font: bold 2.0em/1.0em '맑은 고딕'">원본 사진</span><br><br>
+        <img src="data:image/png;base64,{{ img_origin }}" class="w-full">
+    </div>
+    <div class="content-center overflow-y-auto">
+        <span style="font: bold 2.0em/1.0em '맑은 고딕'" class="">인식된 얼굴사진</span><br><br>
+        {% for i, img_str, name, img_size in zip_range %}
+        <div class="content-center">
+            <span class="inline-block" style="font: 1.5em/1.0em '맑은 고딕'">{{ name }}</span><br>
+            <img src="data:image/png;base64,{{ img_str }}" class="inline-block border-1"><br>
+        </div>
+        <br>
+        {% endfor %}
+    </div><br>
+</div>
+{% endblock %}

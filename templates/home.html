@@ -1,0 +1,111 @@
+<!-- templates/home.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="w-full bg-cover bg-center" style="height:32rem; background-image: url(https://images.unsplash.com/photo-1504384308090-c894fdcc538d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1050&q=80);">
+  <div class="flex items-center justify-center h-full w-full bg-gray-900 bg-opacity-50">
+      <div class="text-center">
+          <h1 class="text-white text-2xl font-semibold uppercase md:text-3xl">외상자들로부터 당신의 돈을 지키세요!!</h1>
+          <button class="mt-4 px-4 py-2 bg-blue-600 text-white text-sm uppercase font-medium rounded hover:bg-blue-500 focus:outline-none focus:bg-blue-500">보르트 소개</button>
+      </div>
+  </div>
+</div>
+
+<div class="w-full mx-auto bg-white px-5 py-10 text-gray-600 mb-10">
+    <div class="max-w-5xl mx-auto md:flex">
+        <div class="md:w-1/4 md:flex md:flex-col">
+            <div class="text-left w-full flex-grow md:pr-5">
+                <h1 class="text-4xl font-bold mb-5">요금</h1>
+                <h3 class="text-md font-medium mb-5">한 달 무료로 이용해 보시고 보르트의 편리함을 확인하세요.</h3>
+            </div>
+            <div class="w-full mb-2">
+                <p class="text-xs">*보르트를 합리적인 가격으로 이용하세요.</p>
+            </div>
+        </div>
+        <div class="md:w-3/4">
+            <div class="max-w-4xl mx-auto md:flex">
+                <div class="w-full md:w-2/5 md:max-w-none bg-white px-8 md:px-10 py-8 md:py-10 mb-3 mx-auto md:my-2 rounded-md shadow-lg shadow-gray-600 md:flex md:flex-col">
+                    <div class="w-full flex-grow">
+                        <h2 class="text-center font-bold uppercase mb-4">한 달 무료 이용권</h2>
+                        <h3 class="text-center font-bold text-4xl mb-5">0원<span class="text-sm">/월</span></h3>
+                        <ul class="text-sm mb-8">
+                            <li class="leading-tight"><i class="mdi mdi-check-bold text-lg"></i> 최대 3명의 외상자 등록 가능</li>
+                            <li class="leading-tight"><i class="mdi mdi-check-bold text-lg"></i> 외상자 추적 결과 최대 7일 저장</li>
+                            <li class="leading-tight"><i class="mdi mdi-check-bold text-lg"></i> ...</li>
+                        </ul>
+                    </div>
+                    <div class="w-full">
+                        <button class="font-bold bg-gray-600 hover:bg-gray-700 text-white rounded-md px-10 py-2 transition-colors w-full">등록하기</button>
+                    </div>
+                </div>
+                <div class="w-full md:w-2/5 md:max-w-none bg-white px-8 md:px-10 py-8 md:py-10 mb-3 mx-auto md:my-2 rounded-md shadow-lg shadow-gray-600 md:flex md:flex-col">
+                    <div class="w-full flex-grow">
+                        <h2 class="text-center font-bold uppercase mb-4">정기 이용권 (한 달)</h2>
+                        <h3 class="text-center font-bold text-4xl mb-5">4,900원<span class="text-sm">/월</span></h3>
+                        <ul class="text-sm mb-8">
+                            <li class="leading-tight"><i class="mdi mdi-check-bold text-lg"></i> 외상자 등록 인원 제한 없음</li>
+                            <li class="leading-tight"><i class="mdi mdi-check-bold text-lg"></i> 외상자 추적 결과 최대 100일 저장</li>
+                            <li class="leading-tight"><i class="mdi mdi-check-bold text-lg"></i> ...</li>
+                        </ul>
+                    </div>
+                    <div class="w-full">
+                        <button class="font-bold bg-gray-600 hover:bg-gray-700 text-white rounded-md px-10 py-2 transition-colors w-full">결제하기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="bg-gray-800 pattern py-20">
+    <div class="max-w-5xl px-6 mx-auto text-center">
+        <h2 class="text-2xl font-semibold text-white">적용된 기술</h2>
+
+        <div class="flex items-center justify-center mt-10">
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="max-w-xs w-full">
+                    <div class="flex items-center justify-center h-56 bg-white border-b-8 border-teal-400 rounded-md overflow-hidden">
+                        <img class="object-cover h-56" src="https://miro.medium.com/max/1200/1*VluiXEpyenaqzuBkhtY3iA.jpeg" alt="">
+                    </div>
+
+                    <a href="#" class="block bg-gray-700 mt-5 rounded-md overflow-hidden transition duration-500 ease-in-out transform hover:-translate-y-1 hover:scale-110">
+                        <div class="py-2 px-3 text-center text-sm">
+                            <p class="text-gray-300">객체 탐지</p>
+
+                            <span class="block text-gray-500 mt-2">YOLOv4</span>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="max-w-xs w-full">
+                    <div class="flex items-center justify-center h-56 bg-white border-b-8 border-teal-400 rounded-md overflow-hidden">
+                        <img class="object-cover h-56" src="https://camo.githubusercontent.com/38f5c405b32619c921378bcd03706bdc95906b8ace2af805ead5fa30f9bd02a6/68747470733a2f2f686162726173746f726167652e6f72672f776562742f756a2f66662f76782f756a6666767878707a6978776c6d616538677968376a796c6674712e6a706567" alt="">
+                    </div>
+
+                    <a href="#" class="block bg-gray-700 mt-5 rounded-md overflow-hidden transition duration-500 ease-in-out transform hover:-translate-y-1 hover:scale-110">
+                        <div class="py-2 px-3 text-center text-sm">
+                            <p class="text-gray-300">얼굴 인식 (+마스크)</p>
+
+                            <span class="block text-gray-500 mt-2">RetinaFace + ArcFace</span>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="max-w-xs w-full">
+                    <div class="flex items-center justify-center h-56 bg-white border-b-8 border-teal-400 rounded-md overflow-hidden">
+                        <img class="object-cover h-56" src="https://i.ytimg.com/vi/bkn6M4LAoHk/maxresdefault.jpg" alt="">
+                    </div>
+
+                    <a href="#" class="block bg-gray-700 mt-5 rounded-md overflow-hidden transition duration-500 ease-in-out transform hover:-translate-y-1 hover:scale-110">
+                        <div class="py-2 px-3 text-center text-sm">
+                            <p class="text-gray-300">객체 추적</p>
+
+                            <span class="block text-gray-500 mt-2">DeepSORT</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
