@@ -32,7 +32,7 @@ class FaceFeatures(object):
             self.feats[i] = loaded
             self.uids.append(int(path.split('/')[-3]))
             self.names.append(path.split('/')[-2])
-            
+        
 
 class Info(object):
     """ It is a class that has information about similarity score, name, feature, box, etc. for one object.
@@ -408,7 +408,7 @@ def get_face_feature(arc_model,image,preprocess=True):
     return  np.hstack((fe_1, fe_2))
 
 
-def save_feat(opt,name,feature,Faces,patch=None):
+def save_feat(opt,name,feature,Faces,uid,patch=None):
     """Save the face feature in npy format.
 
     Args:
@@ -424,6 +424,7 @@ def save_feat(opt,name,feature,Faces,patch=None):
     exists = glob.glob(os.path.join(opt.features_path,name)+'/*.npy')
     dst_path = f'{opt.features_path}/{name}/{name}_{len(exists)+1}.npy'
     feature = np.reshape(feature,[1,-1])
+    Faces.uids.append(uid)
     Faces.feats = np.concatenate([Faces.feats,feature],0)
     Faces.names.append(name)
     np.save(dst_path,feature)
@@ -561,6 +562,7 @@ def face_recognition_multi(img_raw, arc_model, face_detector, face_features,
                                          output_size=(112,112), bbox_xyxy=bbox_xyxy)
         
     # Recognize faces from detected faces
+    print("patch",patch.shape)
     sims, idxs, feats = distinct_multi_face(arc_model, face_features, patch)
     for i,b in enumerate(det):
         if len(b):

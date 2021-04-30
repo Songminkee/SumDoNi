@@ -83,7 +83,7 @@ def save_features(img, name, uid):
     arc_model = TRACKING_MODELS.arc_model
     p = cv2.cvtColor(cv2.resize(img, (128, 128)), cv2.COLOR_BGR2RGB)
     feat = get_face_feature(arc_model, cv2.cvtColor(p, cv2.COLOR_BGR2GRAY), preprocess=True)
-    save_feat(opt, name, feat, TRACKING_MODELS.Faces)
+    save_feat(opt, name, feat, TRACKING_MODELS.Faces,uid=uid)
 
     opt.features_path = origin_features_path
 

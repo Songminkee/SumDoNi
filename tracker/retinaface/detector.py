@@ -40,7 +40,7 @@ class RetinafaceDetector:
         tic = time.time()
         with torch.no_grad():
             loc, conf, landms = self.model(img)  # forward pass
-        if self.priors==None:
+        if self.priors==None or loc[0].data.squeeze(0).shape != self.prior_data.shape:
             priorbox = PriorBox(self.cfg, image_size=(im_height, im_width))
             priors = priorbox.forward()
             self.priors = priors.to(self.device)
@@ -132,7 +132,7 @@ class RetinafaceDetector:
             loc, conf, landms = self.model(img)  # forward pass
         
 
-        if self.priors==None:
+        if self.priors==None or loc[0].data.squeeze(0).shape != self.prior_data.shape:
             priorbox = PriorBox(self.cfg, image_size=(im_height, im_width))
             priors = priorbox.forward()
             self.priors = priors.to(self.device)
