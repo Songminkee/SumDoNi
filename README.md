@@ -29,9 +29,11 @@ You don't have CCTV, but are you interested in our repository? Don't worry, we a
 
 - Arcface & RetinaFace [[Google Drive]](https://drive.google.com/file/d/1-jjGFn6uoDHOl0OdIbOGYumgPjcRinIZ/view?usp=sharing)
   - [[Pytorch Arcface Repo]](https://github.com/ronghuaiyang/arcface-pytorch)
-    - Finetune ArcFace Repo will be soon
+    - [[Finetune ArcFace Repo]](https://github.com/Songminkee/Asian-masked-arcface-pytorch)(our)
+    - [[Download finetuned pretrained weight]](https://drive.google.com/file/d/1IbZs0uyLwibsjhhf37ZPf96BWwRSFg6N/view?usp=sharing)
   - [[Pytorch RetinaFace Repo]](https://github.com/biubug6/Pytorch_Retinaface)
     - [[Finetune RetinaFace Repo]](https://github.com/wooks527/Pytorch_Retinaface)(our)
+    - [[Download finetuned pretrained weight]](https://drive.google.com/file/d/11jLXiN7zez9wEdXR3Y5V_vTXfgmRV_gl/view?usp=sharing)
 - Deep sort & Yolov5 [[Google Drive]](https://drive.google.com/file/d/1wfyin2t_3kFFj2ENbJxDlLVPTUUr0EEe/view?usp=sharing)
   - Deep sort origin [[Web site]](https://drive.google.com/drive/folders/1xhG0kRH1EX5B9_Iz8gQJb7UNnn_riXi6)
   - Yolov5 origin [[Github]](https://github.com/ultralytics/yolov5/releases)
