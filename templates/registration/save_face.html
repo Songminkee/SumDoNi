@@ -5,23 +5,46 @@
 
 {% block content %}
 {% csrf_token %}
-<div>
-    <span style="font: bold 2.5em/1.0em '맑은 고딕'">등록한 외상자 정보</span><br><br>
-</div>
-<div class="grid grid-cols-2 gap-4">
-    <div class="align-middle">
-        <span style="font: bold 2.0em/1.0em '맑은 고딕'">원본 사진</span><br><br>
-        <img src="data:image/png;base64,{{ img_origin }}" class="w-full">
+<style>
+    @import url(https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@1.0/nanumsquare.css);
+    @import url(https://cdn.rawgit.com/moonspam/NanumSquare/master/nanumsquare.css);
+</style>
+
+<div class="p-2.5 h-screen">
+    <div>
+        <span style="font: bold 2.3em/1em '나눔스퀘어', sans-serif;">등록한 외상자 정보</span><br><br>
     </div>
-    <div class="content-center overflow-y-auto">
-        <span style="font: bold 2.0em/1.0em '맑은 고딕'" class="">인식된 얼굴사진</span><br><br>
-        {% for i, img_str, name, img_size in zip_range %}
-        <div class="content-center">
-            <span class="inline-block" style="font: 1.5em/1.0em '맑은 고딕'">{{ name }}</span><br>
-            <img src="data:image/png;base64,{{ img_str }}" class="inline-block border-1"><br>
+    <div class="grid grid-cols-2 gap-4">
+        <div class="align-middle text-center">
+            <span style="font: bold 2em/1em '나눔스퀘어', sans-serif;">원본 사진</span><br><br>
+            <img src="data:image/png;base64,{{ img_origin }}" id="origin_img" class="w-full">
         </div>
-        <br>
-        {% endfor %}
-    </div><br>
+        <div class="text-center">
+            <span style="font: bold 2em/1em '나눔스퀘어', sans-serif;">인식된 얼굴사진</span><br><br>
+            <div id="image-screen" class="overflow-y-auto">
+                {% for i, img_str, name, img_size in zip_range %}
+                <div class="inline-block w-40 text-center">
+                    <img src="data:image/png;base64,{{ img_str }}" class="inline-block border-1 m-1.5 rounded-full"><br>
+                    <span style="font: auto 1em/1em '나눔스퀘어', sans-serif;" class="inline-block text-blue-dark font-bold text-xl pt-1.5 px-1 pb-2 mb-2">
+                        {{ name }}<br>
+                        ✔
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+function myFunction() {
+    origin_img = document.getElementById("origin_img");
+    height = origin_img.offsetHeight;
+    image_div = document.getElementById("image-screen");
+    image_div.style.height = height + "px";
+    console.log(height);
+}
+window.addEventListener("resize", myFunction);
+myFunction();
+</script>
 {% endblock %}
