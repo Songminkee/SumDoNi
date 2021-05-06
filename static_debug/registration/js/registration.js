@@ -65,7 +65,9 @@ function getFrameFromVideo(){
 
     document.getElementById("img").value = dataURL;
 
-    alert("현재 사진을 저장합니다.");
+    alert("현재 사진으로 얼굴인식을 시작합니다.");
+
+    document.getElementById('form').submit();
 }
 
 window.addEventListener('keypress', function (evt) {

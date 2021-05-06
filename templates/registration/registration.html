@@ -25,7 +25,7 @@
               Upload a file
             </button>
 
-            <h1 class="pt-8 pb-3 font-semibold sm:text-lg text-gray-900">
+            <h1 style="font: bold 2.0em/1.0em sans-serif" class="pt-8 pb-3 font-semibold sm:text-lg text-gray-900">
             CCTV Video
             </h1>
 
@@ -47,24 +47,21 @@
 <template id="video-template">
     <li class="block p-1 w-screen h-24">
         <table class="rounded-t-lg m-5 w-5/6 mx-auto text-gray-800 time">
-            <tr class="border-b border-gray-200 frame">
+            <tr class="frame">
                 <td colspan="2">
-                    <div class="content-center">
-                        <div class="inline-block">
-                            <video id="video-active" class="video-active" controls>
-                                <source type="video/mp4" style="width:50%"></source>
-                            </video>
-                        </div>
-                    </div>
+                    <video id="video-active" class="video-active" controls>
+                        <source type="video/mp4"></source>
+                    </video>
                 </td>
             </tr>
-            <tr class="border-b border-gray-200 frame">
+            <tr class="frame">
                 <td class="px-4 py-3">
-                <input type="button" value="이미지 저장" onclick="getFrameFromVideo()" class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded">
-                <form method="POST" action="face_recognition" enctype="multipart/form-data">
+                <form method="POST" action="face_recognition" enctype="multipart/form-data" id="form">
                     {% csrf_token %}
                     <input type="hidden" id="img" name="img" value="">
-                    <input type="submit" value="얼굴 인식 시작" class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded">
+                    <div class="flex justify-center w-full">
+                        <input type="button" value="얼굴 인식 시작" onclick="getFrameFromVideo()" class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded">
+                    </div>
                 </form>
                 </td>
             </tr>

@@ -4,29 +4,52 @@
 
 {% block title %}Face Selection Page{% endblock %}
 {% block content %}
-<br>
-<form method="POST" action="save_face" enctype="multipart/form-data" onsubmit="alert('저장되었습니다');">
-    {% csrf_token %}
-    <div class="grid grid-cols-2 gap-4">
-        <div class="align-middle">
-            <span style="font: bold 2.0em/1.0em '맑은 고딕'">원본 사진</span><br><br>
-            <img src="data:image/png;base64,{{ img_origin }}" class="w-full">
-            <input type="hidden" name="origin_img" value="{{ img_origin }}">
-        </div>
-        <div class="content-center overflow-y-auto">
-            <span style="font: bold 2.0em/1.0em '맑은 고딕'">인식된 얼굴사진</span><br><br>
-            {% for i, img_str in zip_range %}
-            <div>
-                <input type="checkbox" name="images" value="{{ i }}" class="form-checkbox h-8 w-8 inline-block">
-                <img src="data:image/png;base64,{{ img_str }}" class="inline-block border-1">
-                <input type="text" name='b_name' placeholder="외상자 이름(영어)을 입력해주세요" class="px-3 py-3 placeholder-blueGray-300 text-blueGray-600 relative bg-white bg-white rounded text-sm border-0 shadow outline-none focus:outline-none focus:ring w-80"><br>
-                <input type="hidden" name="hidden_image" value="{{ img_str }}">
-            </div>
-            <br>
-            {% endfor %}
-        </div><br>
-        <input type="submit" value="사진 등록" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full w-40"><br>
-        {{ form.as_p }}
+<style>
+    @import url(https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@1.0/nanumsquare.css);
+    @import url(https://cdn.rawgit.com/moonspam/NanumSquare/master/nanumsquare.css);
+</style>
+
+<div class="p-2.5 h-screen">
+    <div>
+        <span style="font: bold 2.3em/1em '나눔스퀘어', sans-serif;">외상자 선택</span><br><br>
     </div>
-</form>
+    <form method="POST" action="save_face" enctype="multipart/form-data" onsubmit="alert('저장되었습니다');">
+        {% csrf_token %}
+        <div class="grid grid-cols-2 gap-4">
+            <div class="text-center">
+                <span style="font: bold 2em/1em '나눔스퀘어', sans-serif;">원본 사진</span><br><br>
+                <img src="data:image/png;base64,{{ img_origin }}" class="w-full" id="origin_img">
+                <input type="hidden" name="origin_img" value="{{ img_origin }}">
+            </div>
+            <div class="text-center">
+                <span style="font: bold 2em/1em '나눔스퀘어', sans-serif;">인식된 얼굴사진</span><br><br>
+                <div id="image-screen" class="overflow-y-auto">
+                    {% for i, img_str in zip_range %}
+                    <div class="inline-block w-40 text-center">
+                        <img src="data:image/png;base64,{{ img_str }}" class="inline-block border-1 rounded-full my-1"><br>
+                        <input type="text" name='b_name' placeholder="홍길동" class="px-3 py-3 placeholder-blueGray-300 text-blueGray-600 relative bg-white bg-white rounded text-sm border-0 shadow outline-none focus:outline-none focus:ring w-32 h-10 my-1 text-center"><br>
+                        <input type="checkbox" name="images" value="{{ i }}" class="form-checkbox h-6 w-6 inline-block my-1">
+                        <input type="hidden" name="hidden_image" value="{{ img_str }}">
+                    </div>
+                    {% endfor %}
+                </div>
+                <br>
+                <input type="submit" value="사진 등록" class="inline-block bg-gray-800 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full w-40"><br>
+            </div>
+            {{ form.as_p }}
+        </div>
+    </form>
+</div>
+
+<script>
+function myFunction() {
+    origin_img = document.getElementById("origin_img");
+    height = origin_img.offsetHeight;
+    image_div = document.getElementById("image-screen");
+    image_div.style.height = height + "px";
+    console.log(height);
+}
+window.addEventListener("resize", myFunction);
+myFunction();
+</script>
 {% endblock %}

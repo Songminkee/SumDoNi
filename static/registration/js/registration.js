@@ -2,7 +2,7 @@ $(document).ready(function(){
     imageTempl = document.getElementById("image-template");
     videoTempl = document.getElementById("video-template");
     empty = document.getElementById("empty");
-    file_button = document.getElementById("button")
+    file_button = document.getElementById("button");
 
     // use to store pre selected files
     let FILES = {};
@@ -65,7 +65,9 @@ function getFrameFromVideo(){
 
     document.getElementById("img").value = dataURL;
 
-    alert("현재 사진을 저장합니다.")
+    alert("현재 사진으로 얼굴인식을 시작합니다.");
+
+    document.getElementById('form').submit();
 }
 
 window.addEventListener('keypress', function (evt) {
